@@ -1,0 +1,37 @@
+# --- SAM 2 Specifics ---
+# Model checkpoints are huge (300MB to 1GB+); never commit them.
+checkpoints/
+*.pt
+*.pth
+
+# --- Local Data & Storage ---
+# These folders store user-uploaded images/videos and processed results.
+uploads/
+results/
+posters/
+gallery/
+*.mp4
+*.jpg
+*.png
+*.json
+
+# --- Python & Environment ---
+# Virtual environments
+.venv/
+env/
+venv/
+ENV/
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# --- IDEs & OS ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# --- Logs ---
+*.log
