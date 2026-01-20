@@ -27,7 +27,7 @@ def preload_data_img() -> Dict[str, Image]:
 
     # Find all image files (jpg, png, etc.) recursively
     image_path_pattern = os.path.join(GALLERY_PATH, "**/*.[jp][pn]g")
-    image_paths = glob.glob(image_path_pattern, recursive=True)
+    image_paths = glob(image_path_pattern, recursive=True)
 
     for p in tqdm(image_paths):
         image = get_image(p, GALLERY_PATH)

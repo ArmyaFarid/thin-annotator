@@ -144,6 +144,13 @@ class AddPointsInput:
 
 
 @strawberry.input
+class AddPointsImageInput:
+    session_id: str
+    object_id: int
+    labels: List[int]
+    points: List[List[float]]
+
+@strawberry.input
 class ClearPointsInFrameInput:
     session_id: str
     frame_index: int

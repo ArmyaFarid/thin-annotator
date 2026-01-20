@@ -16,21 +16,12 @@ import numpy as np
 import torch
 from app_conf import APP_ROOT, MODEL_SIZE
 from inference.data_types import (
-    AddMaskRequest,
-    AddPointsRequest,
-    CancelPorpagateResponse,
-    CancelPropagateInVideoRequest,
-    ClearPointsInFrameRequest,
-    ClearPointsInVideoRequest,
-    ClearPointsInVideoResponse,
+    AddPointsImageRequest,
     CloseSessionRequest,
     CloseSessionResponse,
     Mask,
     PropagateDataResponse,
     PropagateDataValue,
-    PropagateInVideoRequest,
-    RemoveObjectRequest,
-    RemoveObjectResponse,
     StartSessionRequest,
     StartSessionResponse,
 )
@@ -74,6 +65,7 @@ class InferenceImageAPI:
             device = torch.device("cpu")
         logger.info(f"using device: {device}")
 
+        print(f"using device: {device}")
         if device.type == "cuda":
             # turn on tfloat32 for Ampere GPUs (https://pytorch.org/docs/stable/notes/cuda.html#tensorfloat-32-tf32-on-ampere-devices)
             if torch.cuda.get_device_properties(0).major >= 8:
@@ -86,7 +78,15 @@ class InferenceImageAPI:
                 "See e.g. https://github.com/pytorch/pytorch/issues/84936 for a discussion."
             )
 
+
+
         self.device = device
+        self.is_gpu = self.device.type in ["cuda", "mps"]
+        torch.set_grad_enabled(False)
+        if self.device.type == "cpu":
+            torch.set_num_threads(os.cpu_count())
+            torch.set_num_interop_threads(1)
+
         self.sam2_model = build_sam2(model_cfg, checkpoint, device=device)
         self.predictor = SAM2ImagePredictor(
             self.sam2_model
@@ -109,27 +109,65 @@ class InferenceImageAPI:
             
             # This encodes the image and stores features inside self.predictor
             self.predictor.set_image(image_np)
+
+            # image_embedding = predictor.get_image_embedding()
+            # torch.save(image_embedding, "image_embedding.pt")
+
+            # # save the high res features
+            # high_res_features = predictor.get_high_res_features()
+            # torch.save(high_res_features, "high_res_features.pt")
+
+            session_state = {}
+            if self.is_gpu:
+                session_state = {
+                    "image_embedding": self.predictor.get_image_embedding(),
+                    "high_res_features": self.predictor.get_high_res_features(),
+                    "orig_hw": image_np.shape[:2],
+                }
+            else:
+                session_state = {
+                    "image_embedding": self.predictor.get_image_embedding().cpu(),
+                    "high_res_features": self.predictor.get_high_res_features(),
+                    "orig_hw": image_np.shape[:2],
+                }
             
             # We save the features in the session so we can swap back if 
             # the user changes which image they are working on
-            self.session_states[session_id] = {
-                "features": self.predictor.get_image_embedding(),
-                "orig_hw": image_np.shape[:2]
-            }
+            # self.session_states[session_id] = {
+            #     "features": self.predictor.get_image_embedding(),
+            #     "orig_hw": image_np.shape[:2]
+            # }
+            self.session_states[session_id] = session_state
             return StartSessionResponse(session_id=session_id)
 
     def close_session(self, request: CloseSessionRequest) -> CloseSessionResponse:
         is_successful = self.__clear_session_state(request.session_id)
         return CloseSessionResponse(success=is_successful)
 
-    def add_points(self, request: AddPointsRequest) -> PropagateDataResponse:
+    def add_points(self, request: AddPointsImageRequest) -> PropagateDataResponse:
         with self.autocast_context(), self.inference_lock:
             session = self.__get_session(request.session_id)
             
             # Restore the image features for this specific session
             self.predictor.reset_predictor() # Clear old internal state
-            self.predictor.features = session["features"]
-            self.predictor.is_image_set = True
+            
+            # print(session["image_embedding"])
+
+            # self.predictor.features = session["features"]
+            # self.predictor.orig_hw = session["orig_hw"]
+            # self.predictor.is_image_set = True
+
+            # self.predictor.image_embedding = session["image_embedding"].to(self.device)
+            # self.predictor.high_res_features = session["high_res_features"].to(self.device)
+            # self.predictor.orig_hw = session["orig_hw"]
+
+            self.predictor.set_image_embedding(
+                    image_embedding = session["image_embedding"].to(self.device),
+                    img_hw = session["orig_hw"],
+                    high_res_features = session["high_res_features"]
+            )
+
+            # self.predictor.is_image_set = True
 
             # Run the prediction with the new points
             masks, scores, logits = self.predictor.predict(
@@ -141,11 +179,38 @@ class InferenceImageAPI:
             # masks is [1, H, W] after squeeze or indexing
             masks_binary = masks[0] 
 
+
+            # --- DEBUGGING: SAVE IMAGE TO DISK ---
+            # This converts the boolean mask to a grayscale image (0 or 255)
+            debug_img = Image.fromarray((masks_binary * 255).astype(np.uint8))
+            debug_img.save("debug_mask.png")
+            print(f"Debug mask saved. Shape: {masks_binary.shape}, Sum: {np.sum(masks_binary)}")
+            # -------------------------------------
+
             # Convert to RLE for the frontend
             rle_mask_list = self.__get_rle_mask_list(
-                object_ids=[request.object_id], 
+                object_ids=[0], 
                 masks=[masks_binary]
             )
+
+
+            rle = rle_mask_list[0].mask
+
+            # Build COCO RLE object
+            coco_rle = {
+                "size": rle.size,
+                "counts": rle.counts.encode("utf-8")  # pycocotools expects bytes
+            }
+
+            # Decode
+            decoded_mask = decode_masks(coco_rle).squeeze().astype(np.uint8)
+
+            # Save image
+            Image.fromarray(decoded_mask * 255).save("debug_mask_from_rle.png")
+
+            print("RLE size:", rle.size)
+            print("Decoded mask shape:", decoded_mask.shape)
+            print("Decoded sum:", decoded_mask.sum())
 
             return PropagateDataResponse(
                 frame_index=0, # Always 0 for static image

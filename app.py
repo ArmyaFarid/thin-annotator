@@ -24,8 +24,8 @@ from inference.multipart import MultipartResponseBuilder
 from inference.predictor import InferenceAPI
 from strawberry.flask.views import GraphQLView
 
-from server.data.loader_image import preload_data_img
-from server.inference.predictor_images import InferenceImageAPI
+from data.loader_image import preload_data_img
+from inference.predictor_images import InferenceImageAPI
 
 logger = logging.getLogger(__name__)
 

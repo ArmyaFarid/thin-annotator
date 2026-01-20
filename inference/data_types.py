@@ -70,6 +70,14 @@ class AddPointsRequest(BaseRequest):
     labels: List[int]
     points: List[List[float]]
 
+@dataclass_json
+@dataclass
+class AddPointsImageRequest(BaseRequest):
+    type: str
+    session_id: str
+    labels: List[int]
+    points: List[List[float]]
+
 
 @dataclass_json
 @dataclass
