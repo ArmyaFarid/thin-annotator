@@ -61,6 +61,7 @@ class ImageMutation:
             session_id=input.session_id,
             points=input.points,
             labels=input.labels,
+            bboxes=input.bboxes,
         )
         
         # Call image predictor

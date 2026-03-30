@@ -29,6 +29,8 @@ def preload_data_img() -> Dict[str, Image]:
     image_path_pattern = os.path.join(GALLERY_PATH, "**/*.[jp][pn]g")
     image_paths = glob(image_path_pattern, recursive=True)
 
+    image_paths += glob(os.path.join(GALLERY_PATH, "**/*.bmp"), recursive=True)
+
     for p in tqdm(image_paths):
         image = get_image(p, GALLERY_PATH)
         all_images[image.code] = image

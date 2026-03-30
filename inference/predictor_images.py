@@ -170,11 +170,41 @@ class InferenceImageAPI:
             # self.predictor.is_image_set = True
 
             # Run the prediction with the new points
-            masks, scores, logits = self.predictor.predict(
-                point_coords=np.array(request.points),
-                point_labels=np.array(request.labels),
-                multimask_output=False, # We usually want the single best mask
-            )
+            # masks, scores, logits = self.predictor.predict(
+            #     point_coords=np.array(request.points),
+            #     point_labels=np.array(request.labels),
+            #     box=np.array(request.bboxes),
+            #     multimask_output=False, # We usually want the single best mask
+            # )
+
+            points = np.array(request.points)
+            labels = np.array(request.labels)
+
+            if points.size > 0:
+                valid = labels != -1
+                points = points[valid]
+                labels = labels[valid]
+            else:
+                points = None
+                labels = None
+
+            if request.bboxes:
+                bboxes = np.array(request.bboxes, dtype=np.float32)
+                if bboxes.shape[0] == 1:
+                    bboxes = bboxes[0]
+            else:
+                bboxes = None
+
+            if points is not None or bboxes is not None:
+                masks, scores, logits = self.predictor.predict(
+                    point_coords=points,
+                    point_labels=labels,
+                    box=bboxes,
+                    multimask_output=False,
+                )
+            else:
+                masks, scores, logits = np.array([]), np.array([]), np.array([])
+
 
             # masks is [1, H, W] after squeeze or indexing
             masks_binary = masks[0] 
@@ -182,9 +212,9 @@ class InferenceImageAPI:
 
             # --- DEBUGGING: SAVE IMAGE TO DISK ---
             # This converts the boolean mask to a grayscale image (0 or 255)
-            debug_img = Image.fromarray((masks_binary * 255).astype(np.uint8))
-            debug_img.save("debug_mask.png")
-            print(f"Debug mask saved. Shape: {masks_binary.shape}, Sum: {np.sum(masks_binary)}")
+            # debug_img = Image.fromarray((masks_binary * 255).astype(np.uint8))
+            # debug_img.save("debug_mask.png")
+            # print(f"Debug mask saved. Shape: {masks_binary.shape}, Sum: {np.sum(masks_binary)}")
             # -------------------------------------
 
             # Convert to RLE for the frontend

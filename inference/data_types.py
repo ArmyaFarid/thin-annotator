@@ -77,6 +77,7 @@ class AddPointsImageRequest(BaseRequest):
     session_id: str
     labels: List[int]
     points: List[List[float]]
+    bboxes: List[List[float]]
 
 
 @dataclass_json

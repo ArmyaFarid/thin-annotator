@@ -28,3 +28,10 @@ def resolve_images(node_ids: Iterable[str], required: bool = False):
     return [
         all_images[nid] if required else all_images.get(nid, None) for nid in node_ids
     ]
+
+
+def resolve_acquired_images(section_code: str):
+    raise NotImplementedError
+
+def resolve_thin_section_image_pairs(node_ids: Iterable[str], required: bool = False):
+    raise NotImplementedError

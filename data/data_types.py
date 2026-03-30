@@ -4,11 +4,12 @@
 # LICENSE file in the root directory of this source tree.
 
 from dataclasses import dataclass
+from enum import Enum
 from typing import Iterable, List, Optional
 
 import strawberry
 from app_conf import API_URL
-from data.resolver import resolve_images, resolve_videos
+from data.resolver import resolve_images, resolve_videos, resolve_acquired_images, resolve_thin_section_image_pairs
 from dataclasses_json import dataclass_json
 from strawberry import relay
 
@@ -76,7 +77,83 @@ class Image(relay.Node):
         """
         return resolve_images(node_ids, required)
 
+@strawberry.enum
+class AcquisitionType(Enum):
+    PPL = "PPL"                  # Plane Polarized Light
+    XPL = "XPL"                  # Cross Polarized Light (default angle)
+    RL = "RL"                    # Reflected Light
+    FL = "FL"                    # Fluorescence
+    OTHER = "OTHER"
 
+
+@strawberry.type
+class AcquiredImage:
+    """
+    Links an Image to its acquisition context (modality, angle, settings).
+    This is the 'typed slot' in a ThinSectionImagePairs set.
+    """
+    acquisition_type: AcquisitionType
+    angle : Optional[int]
+    gamma : Optional[bool]
+    acquisition_label: Optional[str]
+    image: Image
+
+
+@strawberry.type
+class ThinSectionImagePairs(relay.Node):
+    """
+    A set of co-registered images for a single thin section sample.
+    Each image is associated with a specific acquisition
+    (XPL at angle, PPL, XPL with gamma, etc.).
+    """
+
+    code: relay.NodeID[str]           # unique ID for this image set
+    sample_id: str                     # thin section sample this set belongs to
+    label: Optional[str] = None        # human-readable name for this set
+    description: Optional[str] = None  # extended notes / metadata
+
+    @strawberry.field
+    def acquired_images(self) -> List[AcquiredImage]:
+        """
+        All images in this set, each linked to their acquisition context.
+        Order is preserved (e.g. XPL-0deg → XPL-45deg → XPL-90deg → PPL).
+        """
+        return resolve_acquired_images(self.code)
+
+    @strawberry.field
+    def image_by_acquisition(
+        self, acquisition_type: AcquisitionType
+    ) -> Optional[Image]:
+        """
+        Convenience: fetch a single image by acquisition type.
+        Returns the first match if multiple images share the same type.
+        """
+        for entry in resolve_acquired_images(self.code):
+            if entry.acquisition_type == acquisition_type:
+                return entry.image
+        return None
+
+    @strawberry.field
+    def acquisition_types(self) -> List[AcquisitionType]:
+        """
+        Returns the list of acquisition types available in this set.
+        Useful for clients to know which modalities exist before fetching images.
+        """
+        return [entry.acquisition_type for entry in resolve_acquired_images(self.code)]
+
+    @classmethod
+    def resolve_nodes(
+        cls,
+        *,
+        info: relay.PageInfo,
+        node_ids: Iterable[str],
+        required: bool = False,
+    ):
+        """
+        Relay global node lookup — resolves ThinSectionImagePairs by their global IDs.
+        Implement backend logic in `resolve_thin_section_image_pairs`.
+        """
+        return resolve_thin_section_image_pairs(node_ids, required)
 
 @strawberry.type
 class RLEMask:
@@ -141,6 +218,7 @@ class AddPointsInput:
     object_id: int
     labels: List[int]
     points: List[List[float]]
+    bboxes: List[List[float]]
 
 
 @strawberry.input
@@ -149,6 +227,7 @@ class AddPointsImageInput:
     object_id: int
     labels: List[int]
     points: List[List[float]]
+    bboxes: List[List[float]]
 
 @strawberry.input
 class ClearPointsInFrameInput:
