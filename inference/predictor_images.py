@@ -15,8 +15,8 @@ from PIL import Image
 
 import numpy as np
 import torch
-from app_conf import APP_ROOT, MODEL_SIZE, SAM_PREPROCESSED_IMAGE_PATH
-from data.csv_queries import save_sam_cache_path, get_row_by_image_path
+from app_conf import APP_ROOT, MODEL_SIZE, SAM_PREPROCESSED_IMAGE_PATH, DATA_PATH
+from data.csv_queries import save_sam_cache_path, get_row_by_image_path, load_pairs_csv
 from inference.data_types import (
     AddPointsImageRequest,
     CloseSessionRequest,
@@ -146,84 +146,56 @@ class InferenceImageAPI:
         with self.autocast_context(), self.inference_lock:
             session_id = str(uuid.uuid4())
 
-            filename = os.path.splitext(os.path.basename(request.path))[0]
-            session_path = os.path.join(SAM_PREPROCESSED_IMAGE_PATH, f"{filename}.pt")
+            pairs = load_pairs_csv()
+            pair_rows = pairs.get(request.pairs_code, [])
 
-            csv_row = get_row_by_image_path(request.path)
-            cached_path = csv_row.get("sam_cache") if csv_row else None
+            if not pair_rows:
+                raise ValueError(f"No images found for pair_code: {request.pairs_code}")
 
-            if cached_path and os.path.exists(cached_path):
-                print(f"[SAM] Loading cached features for {filename}")
-                session_data = torch.load(cached_path)
-                self.predictor._features = {
-                    "image_embed": session_data["image_embedding"],
-                    "high_res_feats": session_data["high_res_features"],
-                }
-                self.predictor._orig_hw = [session_data["orig_hw"]]
-                self.predictor._is_image_set = True
-                session_path = cached_path
-            else:
-                print(f"[SAM] Encoding image and caching features for {filename}")
-                image = Image.open(request.path)
-                image_np = np.array(image.convert("RGB"))
-                self.predictor.set_image(image_np)
-
-                image_embedding = self.predictor.get_image_embedding()
-                high_res_features = self.predictor.get_high_res_features()
-
-                if not self.is_gpu:
-                    image_embedding = image_embedding.cpu()
-
-                os.makedirs(SAM_PREPROCESSED_IMAGE_PATH, exist_ok=True)
-                torch.save({
-                    "image_embedding": image_embedding,
-                    "high_res_features": high_res_features,
-                    "orig_hw": image_np.shape[:2],
-                }, session_path)
-
-                save_sam_cache_path(request.path, session_path)
+            image_cache_map = {}
+            for row in pair_rows:
+                cache_path = self._encode_and_save(row["image"])
+                image_cache_map[row["image"]] = cache_path
 
             self.session_states[session_id] = {
-                "path": session_path,
+                "pair_code": request.pairs_code,
+                "image_cache_map": image_cache_map,
                 "created_at": time.time(),
             }
 
             return StartSessionResponse(session_id=session_id)
 
-    def _load_or_encode_image(self, image_path: str):
+    def _encode_and_save(self, image_path: str) -> str:
         csv_row = get_row_by_image_path(image_path)
         cached_path = csv_row.get("sam_cache") if csv_row else None
 
         if cached_path and os.path.exists(cached_path):
-            print(f"[SAM] Loading cached features for {image_path}")
-            session_data = torch.load(cached_path)
-        else:
-            print(f"[SAM] Encoding image for {image_path}")
-            image = Image.open(image_path)
-            image_np = np.array(image.convert("RGB"))
-            self.predictor.set_image(image_np)
+            print(f"[SAM] Cache already exists for {image_path}, skipping encoding")
+            return cached_path
 
-            image_embedding = self.predictor.get_image_embedding()
-            high_res_features = self.predictor.get_high_res_features()
-            if not self.is_gpu:
-                image_embedding = image_embedding.cpu()
+        print(f"[SAM] Encoding image: {image_path}")
+        image = Image.open(f"{DATA_PATH}/{image_path}")
+        image_np = np.array(image.convert("RGB"))
+        self.predictor.set_image(image_np)
 
-            filename = os.path.splitext(os.path.basename(image_path))[0]
-            cache_path = os.path.join(SAM_PREPROCESSED_IMAGE_PATH, f"{filename}.pt")
-            os.makedirs(SAM_PREPROCESSED_IMAGE_PATH, exist_ok=True)
-            torch.save({
-                "image_embedding": image_embedding,
-                "high_res_features": high_res_features,
-                "orig_hw": image_np.shape[:2],
-            }, cache_path)
-            save_sam_cache_path(image_path, cache_path)
-            session_data = torch.load(cache_path)
+        image_embedding = self.predictor.get_image_embedding()
+        high_res_features = self.predictor.get_high_res_features()
 
-        self.predictor.set_image_embedding(
-            image_embedding=session_data["image_embedding"].to(self.device),
-            img_hw=session_data["orig_hw"],
-            high_res_features=session_data["high_res_features"]
-        )
+        if not self.is_gpu:
+            image_embedding = image_embedding.cpu()
+
+        filename = os.path.splitext(os.path.basename(image_path))[0]
+        cache_path = os.path.join(SAM_PREPROCESSED_IMAGE_PATH, f"{filename}.pt")
+        os.makedirs(SAM_PREPROCESSED_IMAGE_PATH, exist_ok=True)
+        torch.save({
+            "image_embedding": image_embedding,
+            "high_res_features": high_res_features,
+            "orig_hw": image_np.shape[:2],
+        }, cache_path)
+
+        save_sam_cache_path(image_path, cache_path)
+        print(f"[SAM] Saved cache: {cache_path}")
+        return cache_path
 
     def close_session(self, request: CloseSessionRequest) -> CloseSessionResponse:
         is_successful = self.__clear_session_state(request.session_id)
@@ -252,7 +224,13 @@ class InferenceImageAPI:
             #         high_res_features = session["high_res_features"]
             # )
 
-            session_data = torch.load(session["path"])
+            print(request.image_path)
+
+            cache_path = session["image_cache_map"][request.image_path]
+
+            print(request.image_path)
+            print(cache_path)
+            session_data = torch.load(cache_path,weights_only=True)
 
             self.predictor.set_image_embedding(
                 image_embedding=session_data["image_embedding"].to(self.device),

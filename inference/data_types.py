@@ -76,6 +76,7 @@ class AddPointsRequest(BaseRequest):
 class AddPointsImageRequest(BaseRequest):
     type: str
     session_id: str
+    image_path: str
     labels: List[int]
     points: List[List[float]]
     bboxes: List[List[float]]

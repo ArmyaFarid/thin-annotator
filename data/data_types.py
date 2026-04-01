@@ -214,7 +214,7 @@ class RLEMaskListOnFrame:
 @strawberry.input
 class StartSessionInput:
     path: str
-    pairs_code : str
+    pairs_code : strawberry.ID
 
 
 @strawberry.type
@@ -256,6 +256,7 @@ class AddPointsInput:
 @strawberry.input
 class AddPointsImageInput:
     session_id: str
+    image_path: str
     object_id: int
     labels: List[int]
     points: List[List[float]]

@@ -1,4 +1,6 @@
 # data/schema_image.py
+import base64
+
 import strawberry
 from typing import Iterable, List
 from data.data_types import (
@@ -52,12 +54,16 @@ class ImageMutation:
     def start_session_image(self, input: StartSessionInput, info: strawberry.Info) -> StartSession:
         # Uses the IMAGE API from context
         api = info.context["inference_image_api"]
+
+        raw_pair_code = base64.b64decode(str(input.pairs_code)).decode("utf-8").split(":")[-1]
+
+        print(raw_pair_code)
         
         # Reuse StartSessionRequest or make a specific one if fields differ
         request = StartSessionRequest(
             type="start_session_image",
             path=f"{DATA_PATH}/{input.path}",
-            pairs_code=input.pairs_code
+            pairs_code=raw_pair_code
         )
         
         # The image API saves the embeddings here
@@ -72,6 +78,7 @@ class ImageMutation:
         request = AddPointsImageRequest(
             type="add_points",
             session_id=input.session_id,
+            image_path=input.image_path,
             points=input.points,
             labels=input.labels,
             bboxes=input.bboxes,
