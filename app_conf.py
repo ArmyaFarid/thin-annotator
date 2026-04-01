@@ -52,9 +52,17 @@ THUMBNAILS_PATH = DATA_PATH / THUMBNAILS_PREFIX
 # Path where all posters are stored
 POSTERS_PATH = DATA_PATH / POSTERS_PREFIX
 
+
+# Prefix for uploaded videos
+SAM_PREPROCESSED_IMAGE_PREFIX = "sam-preprocessed"
+
+# Path where all uploaded videos are stored
+SAM_PREPROCESSED_IMAGE_PATH = DATA_PATH / SAM_PREPROCESSED_IMAGE_PREFIX
+
 # Make sure any of those paths exist
 os.makedirs(DATA_PATH, exist_ok=True)
 os.makedirs(GALLERY_PATH, exist_ok=True)
 os.makedirs(UPLOADS_PATH, exist_ok=True)
 os.makedirs(POSTERS_PATH, exist_ok=True)
 os.makedirs(THUMBNAILS_PATH, exist_ok=True)
+os.makedirs(SAM_PREPROCESSED_IMAGE_PATH, exist_ok=True)

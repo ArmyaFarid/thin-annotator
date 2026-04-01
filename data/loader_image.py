@@ -51,6 +51,8 @@ def get_image(
     # Relative path to gallery root
     image_path = os.path.relpath(filepath, absolute_path.parent)
 
+    width, height = -1,-1
+
     thumbnail_path = None
     if generate_thumbnail:
         # Example: generate a simple copy or resize for thumbnail
@@ -63,6 +65,7 @@ def get_image(
             from PIL import Image as PILImage
 
             img = PILImage.open(filepath)
+            width, height= img.width, img.height
             img.thumbnail((200, 200))  # small thumbnail
             img.save(thumbnail_output_path)
         except Exception as e:
@@ -71,7 +74,7 @@ def get_image(
             thumbnail_path = None
 
     # Get image dimensions
-    width, height = imagesize.get(filepath)
+    # width, height = imagesize.get(filepath)
 
     return Image(
         code=image_path if file_key is None else file_key,

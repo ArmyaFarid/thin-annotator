@@ -21,12 +21,12 @@ from app_conf import (
 from data.transcoder import get_video_metadata, transcode, VideoMetadata
 from strawberry.file_uploads import Upload
 
-from data.image_schema import ImageMutation, ImageQuery
+from data.image_schema import ImageMutation, ImageQuery, ThinSectionImagePairsQuery
 from data.video_schema import VideoMutation, VideoQuery
 
 
 @strawberry.type
-class Query(VideoQuery, ImageQuery):
+class Query(VideoQuery, ImageQuery,ThinSectionImagePairsQuery):
     """
     Inherits 'videos' from VideoQuery and 'images' from ImageQuery.
     """

@@ -13,6 +13,15 @@ from data.resolver import resolve_images, resolve_videos, resolve_acquired_image
 from dataclasses_json import dataclass_json
 from strawberry import relay
 
+def unique_preserve_order(values):
+    seen = set()
+    result = []
+    for v in values:
+        if v not in seen:
+            seen.add(v)
+            result.append(v)
+    return result
+
 
 @strawberry.type
 class Video(relay.Node):
@@ -78,11 +87,12 @@ class Image(relay.Node):
         return resolve_images(node_ids, required)
 
 @strawberry.enum
-class AcquisitionType(Enum):
+class PolarizedFilterType(Enum):
     PPL = "PPL"                  # Plane Polarized Light
     XPL = "XPL"                  # Cross Polarized Light (default angle)
-    RL = "RL"                    # Reflected Light
-    FL = "FL"                    # Fluorescence
+    # RL = "RL"                    # Reflected Light
+    # FL = "FL"                    # Fluorescence
+    XPL_GAMMA = "XPL_GAMMA"
     OTHER = "OTHER"
 
 
@@ -92,11 +102,11 @@ class AcquiredImage:
     Links an Image to its acquisition context (modality, angle, settings).
     This is the 'typed slot' in a ThinSectionImagePairs set.
     """
-    acquisition_type: AcquisitionType
-    angle : Optional[int]
-    gamma : Optional[bool]
+    polarized_filter_type: PolarizedFilterType
+    gamma : Optional[int]
     acquisition_label: Optional[str]
     image: Image
+
 
 
 @strawberry.type
@@ -112,34 +122,55 @@ class ThinSectionImagePairs(relay.Node):
     label: Optional[str] = None        # human-readable name for this set
     description: Optional[str] = None  # extended notes / metadata
 
+    _acquired_cache: Optional[List[AcquiredImage]] = None
+
+    _polarized_filter_types: Optional[List[PolarizedFilterType]] = None
+
+    _gammas : Optional[List[int]] = None
+
+
     @strawberry.field
     def acquired_images(self) -> List[AcquiredImage]:
         """
         All images in this set, each linked to their acquisition context.
         Order is preserved (e.g. XPL-0deg → XPL-45deg → XPL-90deg → PPL).
         """
-        return resolve_acquired_images(self.code)
+        if self._acquired_cache is None:
+            self._acquired_cache = resolve_acquired_images(self.code)
+            # compute types at the same time
+            self._polarized_filter_types = [resolved_acquired_image.polarized_filter_type for resolved_acquired_image in self._acquired_cache]
+            self._gammas = [resolved_acquired_image.gamma for resolved_acquired_image in self._acquired_cache]
+        return self._acquired_cache
 
     @strawberry.field
     def image_by_acquisition(
-        self, acquisition_type: AcquisitionType
+        self, acquisition_type: PolarizedFilterType
     ) -> Optional[Image]:
         """
         Convenience: fetch a single image by acquisition type.
         Returns the first match if multiple images share the same type.
         """
         for entry in resolve_acquired_images(self.code):
-            if entry.acquisition_type == acquisition_type:
+            if entry.polarized_filter_type == acquisition_type:
                 return entry.image
         return None
 
     @strawberry.field
-    def acquisition_types(self) -> List[AcquisitionType]:
+    def polarized_filter_types(self) -> List[PolarizedFilterType]:
         """
         Returns the list of acquisition types available in this set.
         Useful for clients to know which modalities exist before fetching images.
         """
-        return [entry.acquisition_type for entry in resolve_acquired_images(self.code)]
+        if self._polarized_filter_types is None:
+            # resolve images to compute types
+            _ = self.acquired_images()
+        return unique_preserve_order(self._polarized_filter_types)
+
+    @strawberry.field
+    def gammas(self) -> List[Optional[int]]:
+        if self._gammas is None:
+            _ = self.acquired_images()
+        return unique_preserve_order(self._gammas)
 
     @classmethod
     def resolve_nodes(

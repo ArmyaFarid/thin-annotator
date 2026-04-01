@@ -4,7 +4,7 @@ from typing import Iterable, List
 from data.data_types import (
     AddPointsImageInput, Image, StartSessionInput, StartSession,
     AddPointsInput, RLEMaskListOnFrame,
-    RLEMaskForObject, RLEMask
+    RLEMaskForObject, RLEMask, ThinSectionImagePairs
 )
 from app_conf import DATA_PATH
 from inference.data_types import AddPointsImageRequest, AddPointsRequest, StartSessionRequest
@@ -32,6 +32,18 @@ class ImageQuery:
         """
         all_images = get_images()
         return all_images.values()
+
+
+@strawberry.type
+class ThinSectionImagePairsQuery:
+
+    @strawberry.field
+    def default_pairs(self) -> ThinSectionImagePairs:
+        return ThinSectionImagePairs(
+            code="GDX-22-PI",
+            sample_id="A1",
+            label="Example pair",
+        )
 
 
 @strawberry.type
