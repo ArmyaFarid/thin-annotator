@@ -214,6 +214,7 @@ class RLEMaskListOnFrame:
 @strawberry.input
 class StartSessionInput:
     path: str
+    pairs_code : str
 
 
 @strawberry.type

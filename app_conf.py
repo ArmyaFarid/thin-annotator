@@ -59,6 +59,8 @@ SAM_PREPROCESSED_IMAGE_PREFIX = "sam-preprocessed"
 # Path where all uploaded videos are stored
 SAM_PREPROCESSED_IMAGE_PATH = DATA_PATH / SAM_PREPROCESSED_IMAGE_PREFIX
 
+CSV_PATH = "/Users/armyabakouan/UQAC/RESEARCH/experiments/web/sam2/backend/server/data/gallery/image_pairs.csv"
+
 # Make sure any of those paths exist
 os.makedirs(DATA_PATH, exist_ok=True)
 os.makedirs(GALLERY_PATH, exist_ok=True)

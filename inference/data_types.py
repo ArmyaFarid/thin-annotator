@@ -28,6 +28,7 @@ class BaseRequest:
 class StartSessionRequest(BaseRequest):
     type: str
     path: str
+    pairs_code: Optional[str] = None
     session_id: Optional[str] = None
 
 

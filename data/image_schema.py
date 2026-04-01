@@ -57,6 +57,7 @@ class ImageMutation:
         request = StartSessionRequest(
             type="start_session_image",
             path=f"{DATA_PATH}/{input.path}",
+            pairs_code=input.pairs_code
         )
         
         # The image API saves the embeddings here
