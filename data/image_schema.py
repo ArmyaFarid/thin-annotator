@@ -6,10 +6,10 @@ from typing import Iterable, List
 from data.data_types import (
     AddPointsImageInput, Image, StartSessionInput, StartSession,
     AddPointsInput, RLEMaskListOnFrame,
-    RLEMaskForObject, RLEMask, ThinSectionImagePairs
+    RLEMaskForObject, RLEMask, ThinSectionImagePairs, SlicImageInput
 )
 from app_conf import DATA_PATH
-from inference.data_types import AddPointsImageRequest, AddPointsRequest, StartSessionRequest
+from inference.data_types import AddPointsImageRequest, AddPointsRequest, StartSessionRequest, SlicImageRequest
 from strawberry import relay
 from data.store import get_images
 
@@ -85,8 +85,36 @@ class ImageMutation:
         )
         
         # Call image predictor
-        response = api.add_points(request)
+        response = api.add_points_image(request)
 
+
+        print("response ....")
+
+        return RLEMaskListOnFrame(
+            frame_index=0,
+            rle_mask_list=[
+                RLEMaskForObject(
+                    object_id=r.object_id,
+                    rle_mask=RLEMask(counts=r.mask.counts, size=r.mask.size, order="F"),
+                )
+                for r in response.results
+            ],
+        )
+
+    @strawberry.mutation
+    def compute_slic_image(self, input: SlicImageInput, info: strawberry.Info) -> RLEMaskListOnFrame:
+        api = info.context["inference_image_api"]
+
+        # Image Way: Frame index is always 0
+        request = SlicImageRequest(
+            type="add_points",
+            session_id=input.session_id,
+            image_path=input.image_path,
+            bbox=input.bbox,
+        )
+
+        # Call image predictor
+        response = api.compute_slic_image(request)
 
         print("response ....")
 

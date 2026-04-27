@@ -13,6 +13,8 @@ from threading import Lock
 from typing import Any, Dict, Generator, List
 from PIL import Image
 
+from skimage.segmentation import slic
+
 import numpy as np
 import torch
 from app_conf import APP_ROOT, MODEL_SIZE, SAM_PREPROCESSED_IMAGE_PATH, DATA_PATH
@@ -25,7 +27,7 @@ from inference.data_types import (
     PropagateDataResponse,
     PropagateDataValue,
     StartSessionRequest,
-    StartSessionResponse,
+    StartSessionResponse, SlicImageRequest,
 )
 from pycocotools.mask import decode as decode_masks, encode as encode_masks
 from sam2.build_sam import build_sam2
@@ -201,7 +203,7 @@ class InferenceImageAPI:
         is_successful = self.__clear_session_state(request.session_id)
         return CloseSessionResponse(success=is_successful)
 
-    def add_points(self, request: AddPointsImageRequest) -> PropagateDataResponse:
+    def add_points_image(self, request: AddPointsImageRequest) -> PropagateDataResponse:
         with self.autocast_context(), self.inference_lock:
             session = self.__get_session(request.session_id)
             
@@ -317,6 +319,67 @@ class InferenceImageAPI:
                 frame_index=0, # Always 0 for static image
                 results=rle_mask_list,
             )
+
+
+
+    def compute_slic_image(self, request: SlicImageRequest) -> PropagateDataResponse:
+        with self.autocast_context(), self.inference_lock:
+            session = self.__get_session(request.session_id)
+
+            print(request.image_path)
+
+            cache_path = session["image_cache_map"][request.image_path]
+
+            image = Image.open(f"{DATA_PATH}/{request.image_path}")
+            image_np = np.array(image.convert("RGB"))
+
+            bbox = np.array(request.bbox)
+
+            masks = self.__slicOnImage(image_np, bbox)
+
+
+            # Convert to RLE for the frontend
+            rle_mask_list = self.__get_rle_mask_list(
+                object_ids=list(range(len(masks))),
+                masks=masks
+            )
+
+            return PropagateDataResponse(
+                frame_index=0,  # Always 0 for static image
+                results=rle_mask_list,
+            )
+
+    def __slicOnImage(self, image: np.ndarray, bbox: List[int], on_full_image: bool = False) -> list[np.ndarray]:
+        x0, y0, w, h = map(int, bbox)
+        print(w, h )
+
+        if not on_full_image:
+            portion = image[y0:y0 + h, x0:x0 + w]
+            target_size = 400  # pixels per segment (tune this)
+            n_segments = max(10, int((w * h) / target_size))
+            segments_slic = slic(portion, n_segments=n_segments, compactness=20, start_label=1)
+
+            binary_mask_list = []
+            for seg_id in np.unique(segments_slic):
+                # Build a full-image-sized mask, place the segment in the bbox region
+                full_mask = np.zeros(image.shape[:2], dtype=bool)
+                full_mask[y0:y0 + h, x0:x0 + w] = (segments_slic == seg_id)
+                binary_mask_list.append(full_mask)
+
+        else:
+            segments_slic = slic(image, n_segments=20, compactness=20, start_label=1)
+
+            # Find which segment IDs have any overlap with the bbox
+            bbox_region = segments_slic[y0:y0 + h, x0:x0 + w]
+            seg_ids_in_bbox = np.unique(bbox_region)
+
+            binary_mask_list = []
+            for seg_id in seg_ids_in_bbox:
+                # Full-size mask for each segment (entire segment, not clipped)
+                full_mask = (segments_slic == seg_id)
+                binary_mask_list.append(full_mask)
+
+        return binary_mask_list
 
     def __get_rle_mask_list(
         self, object_ids: List[int], masks: np.ndarray
