@@ -87,6 +87,9 @@ class ImageMutation:
         # Call image predictor
         response = api.add_points(request)
 
+
+        print("response ....")
+
         return RLEMaskListOnFrame(
             frame_index=0,
             rle_mask_list=[

@@ -84,6 +84,14 @@ class AddPointsImageRequest(BaseRequest):
 
 @dataclass_json
 @dataclass
+class SlicImageRequest(BaseRequest):
+    type: str
+    session_id: str
+    image_path: str
+    bbox: List[float]
+
+@dataclass_json
+@dataclass
 class AddMaskRequest(BaseRequest):
     type: str
     session_id: str

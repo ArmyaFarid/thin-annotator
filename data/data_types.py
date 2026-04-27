@@ -262,6 +262,13 @@ class AddPointsImageInput:
     points: List[List[float]]
     bboxes: List[List[float]]
 
+
+@strawberry.input
+class SlicImageInput:
+    session_id: str
+    image_path: str
+    bbox: List[float]
+
 @strawberry.input
 class ClearPointsInFrameInput:
     session_id: str
