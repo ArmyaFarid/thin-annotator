@@ -4,6 +4,10 @@
 # LICENSE file in the root directory of this source tree.
 
 import logging
+import os
+from pathlib import Path
+import signal
+import sys
 from typing import Any, Generator
 
 from app_conf import (
@@ -13,6 +17,7 @@ from app_conf import (
     POSTERS_PREFIX,
     UPLOADS_PATH,
     UPLOADS_PREFIX,
+    get_resource_path,
 )
 from data.loader import preload_data
 from data.schema import schema
@@ -27,26 +32,61 @@ from strawberry.flask.views import GraphQLView
 from data.loader_image import preload_data_img
 from inference.predictor_images import InferenceImageAPI
 
+import webbrowser
+from threading import Timer
+
+os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
+# This prevents certain libraries from trying to manage threads themselves
+os.environ['OMP_NUM_THREADS'] = '1'
+
+def open_browser():
+    # Matches the port in your app.run()
+    webbrowser.open_new("http://127.0.0.1:7263")
+
+
+
 logger = logging.getLogger(__name__)
 
-app = Flask(__name__)
+app = Flask(__name__,static_folder=get_resource_path("frontend_payload"),
+            static_url_path="/")
+
 cors = CORS(app, supports_credentials=True)
 
-videos = preload_data()
-set_videos(videos)
+# videos = preload_data()
+# set_videos(videos)
 
-images = preload_data_img()
-set_images(images)
+# images = preload_data_img()
+# set_images(images)
  
-inference_api = InferenceAPI()
+inference_api = None
+inference_image_api = None
 
-inference_image_api = InferenceImageAPI()
+@app.route("/")
+def serve_index():
+    return send_from_directory(app.static_folder, "index.html")
 
+@app.route("/<path:path>")
+def serve_static(path):
+    # Check if the requested file exists in the 'dist' folder
+    if os.path.exists(os.path.join(app.static_folder, path)):
+        return send_from_directory(app.static_folder, path)
+    # Otherwise, fall back to index.html for React Router
+    return send_from_directory(app.static_folder, "index.html")
 
 @app.route("/healthy")
 def healthy() -> Response:
     return make_response("OK", 200)
 
+@app.route("/shutdown", methods=["GET"])
+def shutdown():
+    logger.info("Shutdown requested from UI...")
+    # Give the response a moment to reach the browser before killing the engine
+    try:
+        # This is the cleanest way to kill a PyInstaller/multiprocessing app
+        os.kill(os.getpid(), signal.SIGINT)
+    except:
+        os._exit(0)
+    return make_response("Server shutting down...", 200)
 
 @app.route(f"/{GALLERY_PREFIX}/<path:path>", methods=["GET"])
 def send_gallery_video(path: str) -> Response:
@@ -146,6 +186,32 @@ app.add_url_rule(
     ),
 )
 
-
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=7263)
+    import multiprocessing
+    multiprocessing.freeze_support()
+
+    try:
+        multiprocessing.set_start_method('spawn',force=True)
+    except RuntimeError:
+        pass
+
+    
+    images = preload_data_img()
+    set_images(images)
+    # global inference_api
+    # global inference_image_api
+
+    print("Initializing SAM 2 Models...")
+    inference_api = InferenceAPI()
+    inference_image_api = InferenceImageAPI()
+
+
+    # Create the timer
+    t = Timer(1.5, open_browser)
+    t.daemon = True  # This ensures the timer dies if the app dies
+    t.start()
+
+    try:
+        app.run(host="0.0.0.0", port=7263, debug=False, use_reloader=False)
+    except KeyboardInterrupt:
+        print("Shutting down...")

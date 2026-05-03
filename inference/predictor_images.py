@@ -306,14 +306,14 @@ class InferenceImageAPI:
             }
 
             # Decode
-            decoded_mask = decode_masks(coco_rle).squeeze().astype(np.uint8)
+            # decoded_mask = decode_masks(coco_rle).squeeze().astype(np.uint8)
 
-            # Save image
-            Image.fromarray(decoded_mask * 255).save("debug_mask_from_rle.png")
+            # # Save image
+            # Image.fromarray(decoded_mask * 255).save("debug_mask_from_rle.png")
 
-            print("RLE size:", rle.size)
-            print("Decoded mask shape:", decoded_mask.shape)
-            print("Decoded sum:", decoded_mask.sum())
+            # print("RLE size:", rle.size)
+            # print("Decoded mask shape:", decoded_mask.shape)
+            # print("Decoded sum:", decoded_mask.sum())
 
             return PropagateDataResponse(
                 frame_index=0, # Always 0 for static image

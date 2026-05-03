@@ -35,3 +35,10 @@ Thumbs.db
 
 # --- Logs ---
 *.log
+
+
+build*/
+
+frontend_payload*/
+
+dist/*
