@@ -29,7 +29,7 @@ from inference.data_types import PropagateDataResponse, PropagateInVideoRequest
 from inference.multipart import MultipartResponseBuilder
 from strawberry.flask.views import GraphQLView
 
-from data.loader_image import preload_data_img
+from data.loader_image import preload_data_img , init_thin_section_fov_images
 from inference.predictor_images import InferenceImageAPI
 
 import webbrowser
@@ -52,6 +52,11 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__,static_folder=get_resource_path("frontend_payload"),
             static_url_path="/")
+
+try:
+    os.makedirs(app.instance_path)
+except OSError:
+    pass
 
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(app.instance_path, 'test.db')
@@ -153,9 +158,14 @@ if __name__ == "__main__":
     except RuntimeError:
         pass
 
-    
+    with app.app_context():
+        db.create_all()
+        init_thin_section_fov_images()
+
+
     images = preload_data_img()
     set_images(images)
+
     # global inference_api
     # global inference_image_api
 
@@ -164,9 +174,9 @@ if __name__ == "__main__":
 
 
     # Create the timer
-    t = Timer(1.5, open_browser)
-    t.daemon = True  # This ensures the timer dies if the app dies
-    t.start()
+    # t = Timer(1.5, open_browser)
+    # t.daemon = True  # This ensures the timer dies if the app dies
+    # t.start()
 
     try:
         app.run(host="0.0.0.0", port=7263, debug=False, use_reloader=False)

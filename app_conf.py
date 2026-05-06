@@ -82,3 +82,7 @@ os.makedirs(UPLOADS_PATH, exist_ok=True)
 os.makedirs(POSTERS_PATH, exist_ok=True)
 os.makedirs(THUMBNAILS_PATH, exist_ok=True)
 os.makedirs(SAM_PREPROCESSED_IMAGE_PATH, exist_ok=True)
+
+
+THIN_SECTION_FOV_SAMPLE_PATH = Path(os.getenv("THIN_SECTION_FOV_SAMPLE_PATH", "/Users/armyabakouan/Documents/ThinAnnotatorData/DOSSIER_LAMES/GDX-22-PI/FOV_1"))
+

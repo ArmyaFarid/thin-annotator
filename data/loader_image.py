@@ -14,10 +14,65 @@ from pathlib import Path
 from typing import Dict, Optional
 
 import imagesize
-from app_conf import GALLERY_PATH, POSTERS_PATH, POSTERS_PREFIX, THUMBNAILS_PATH, THUMBNAILS_PREFIX
+from app_conf import GALLERY_PATH, POSTERS_PATH, POSTERS_PREFIX, THUMBNAILS_PATH, THUMBNAILS_PREFIX,THIN_SECTION_FOV_SAMPLE_PATH
 from data.data_types import Image, Video
 from tqdm import tqdm
 
+from data.parsers.fov_file_parser import parse_fov_filename
+from extensions import db
+
+from models import FOVAsset
+
+
+def init_thin_section_fov_images():
+    fov_images_path = THIN_SECTION_FOV_SAMPLE_PATH
+    fov_id = fov_images_path.name
+    thin_section_id = fov_images_path.parent.name
+
+    print(f"Syncing folder: {thin_section_id} / {fov_id}")
+    extensions = {".jpg", ".jpeg", ".png", ".tif", ".tiff", ".bmp"}
+
+    new_assets = []
+    
+    for file_path in fov_images_path.iterdir():
+        if file_path.suffix.lower() in extensions:
+            image_name = file_path.name
+            image_path_str = str(file_path)
+            fov_metadata = parse_fov_filename(image_name)
+
+            # Look for the existing record by image_path
+            existing_asset = db.session.query(FOVAsset).filter_by(
+                image_path=image_path_str
+            ).first()
+
+            if existing_asset:
+                # --- UPDATE LOGIC ---
+                print(f"Updating existing asset: {image_name}")
+                existing_asset.thin_section_id = thin_section_id
+                existing_asset.fov_id = fov_id
+                existing_asset.lighting_modality = fov_metadata["lighting_modality"]
+                existing_asset.gamma = fov_metadata["gamma"]
+                existing_asset.stage_angle = fov_metadata["stage_angle"]
+                existing_asset.sample_path = str(fov_images_path.parent)
+            else:
+                # --- INSERT LOGIC ---
+                print(f"Creating new asset: {image_name}")
+                new_asset = FOVAsset(
+                    image_path=image_path_str,
+                    thin_section_id=thin_section_id,
+                    fov_id=fov_id,
+                    lighting_modality=fov_metadata["lighting_modality"],
+                    gamma=fov_metadata["gamma"],
+                    stage_angle=fov_metadata["stage_angle"],
+                    sample_path=str(fov_images_path.parent)
+                )
+                new_assets.append(new_asset)
+
+    if new_assets:
+        db.session.add_all(new_assets)
+    db.session.commit()
+    print("Database sync complete.")
+    return 0
 
 def preload_data_img() -> Dict[str, Image]:
     """
