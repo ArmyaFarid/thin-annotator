@@ -10,6 +10,8 @@ import signal
 import sys
 from typing import Any, Generator
 
+from flask_sqlalchemy import SQLAlchemy
+
 from app_conf import (
     GALLERY_PATH,
     GALLERY_PREFIX,
@@ -19,14 +21,12 @@ from app_conf import (
     UPLOADS_PREFIX,
     get_resource_path,
 )
-from data.loader import preload_data
 from data.schema import schema
-from data.store import set_images, set_videos
+from data.store import set_images
 from flask import Flask, make_response, Request, request, Response, send_from_directory
 from flask_cors import CORS
 from inference.data_types import PropagateDataResponse, PropagateInVideoRequest
 from inference.multipart import MultipartResponseBuilder
-from inference.predictor import InferenceAPI
 from strawberry.flask.views import GraphQLView
 
 from data.loader_image import preload_data_img
@@ -35,9 +35,8 @@ from inference.predictor_images import InferenceImageAPI
 import webbrowser
 from threading import Timer
 
-os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
-# This prevents certain libraries from trying to manage threads themselves
-os.environ['OMP_NUM_THREADS'] = '1'
+from extensions import db
+
 
 def open_browser():
     # Matches the port in your app.run()
@@ -50,14 +49,11 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__,static_folder=get_resource_path("frontend_payload"),
             static_url_path="/")
 
+
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(app.instance_path, 'test.db')
+db.init_app(app)
+
 cors = CORS(app, supports_credentials=True)
-
-# videos = preload_data()
-# set_videos(videos)
-
-# images = preload_data_img()
-# set_images(images)
- 
 inference_api = None
 inference_image_api = None
 
@@ -121,50 +117,10 @@ def send_uploaded_video(path: str):
         raise ValueError("resource not found")
 
 
-# TOOD: Protect route with ToS permission check
-@app.route("/propagate_in_video", methods=["POST"])
-def propagate_in_video() -> Response:
-    data = request.json
-    args = {
-        "session_id": data["session_id"],
-        "start_frame_index": data.get("start_frame_index", 0),
-    }
-
-    boundary = "frame"
-    frame = gen_track_with_mask_stream(boundary, **args)
-    return Response(frame, mimetype="multipart/x-savi-stream; boundary=" + boundary)
-
-
-def gen_track_with_mask_stream(
-    boundary: str,
-    session_id: str,
-    start_frame_index: int,
-) -> Generator[bytes, None, None]:
-    with inference_api.autocast_context():
-        request = PropagateInVideoRequest(
-            type="propagate_in_video",
-            session_id=session_id,
-            start_frame_index=start_frame_index,
-        )
-
-        for chunk in inference_api.propagate_in_video(request=request):
-            yield MultipartResponseBuilder.build(
-                boundary=boundary,
-                headers={
-                    "Content-Type": "application/json; charset=utf-8",
-                    "Frame-Current": "-1",
-                    # Total frames minus the reference frame
-                    "Frame-Total": "-1",
-                    "Mask-Type": "RLE[]",
-                },
-                body=chunk.to_json().encode("UTF-8"),
-            ).get_message()
-
 
 class MyGraphQLView(GraphQLView):
     def get_context(self, request: Request, response: Response) -> Any:
         return {
-            "inference_api": inference_api,
             "inference_image_api": inference_image_api
             }
 
@@ -193,43 +149,12 @@ def start_backend_logic():
     os.environ['OMP_NUM_THREADS'] = '1'
     """Function to initialize data and APIs inside the child process."""
     global inference_api, inference_image_api
-    
+
     images = preload_data_img()
     set_images(images)
 
     print("Initializing SAM 2 Models...")
-    inference_api = InferenceAPI()
     inference_image_api = InferenceImageAPI()
-    
+
     # Run the app (this will block the process)
     app.run(host="0.0.0.0", port=7263, debug=False, use_reloader=False)
-
-# if __name__ == "__main__":
-    import multiprocessing
-    multiprocessing.freeze_support()
-
-    try:
-        multiprocessing.set_start_method('spawn',force=True)
-    except RuntimeError:
-        pass
-
-    
-    images = preload_data_img()
-    set_images(images)
-    # global inference_api
-    # global inference_image_api
-
-    print("Initializing SAM 2 Models...")
-    inference_api = InferenceAPI()
-    inference_image_api = InferenceImageAPI()
-
-
-    # Create the timer
-    t = Timer(1.5, open_browser)
-    t.daemon = True  # This ensures the timer dies if the app dies
-    t.start()
-
-    try:
-        app.run(host="0.0.0.0", port=7263, debug=False, use_reloader=False)
-    except KeyboardInterrupt:
-        print("Shutting down...")

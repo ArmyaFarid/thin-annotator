@@ -9,7 +9,7 @@ from data.data_types import (
     RLEMaskForObject, RLEMask, ThinSectionImagePairs, SlicImageInput
 )
 from app_conf import DATA_PATH
-from inference.data_types import AddPointsImageRequest, AddPointsRequest, StartSessionRequest, SlicImageRequest
+from inference.data_types import AddPointsImageRequest, StartSessionRequest, SlicImageRequest
 from strawberry import relay
 from data.store import get_images
 
