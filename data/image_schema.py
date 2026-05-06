@@ -8,10 +8,12 @@ from data.data_types import (
     AddPointsInput, RLEMaskListOnFrame,
     RLEMaskForObject, RLEMask, ThinSectionImagePairs, SlicImageInput
 )
-from app_conf import DATA_PATH
+from app_conf import DATA_PATH, THIN_SECTION_FOV_SAMPLE_PATH
+from extensions import db
 from inference.data_types import AddPointsImageRequest, StartSessionRequest, SlicImageRequest
 from strawberry import relay
 from data.store import get_images
+from models import FOVAsset
 
 
 @strawberry.type
@@ -35,15 +37,17 @@ class ImageQuery:
         all_images = get_images()
         return all_images.values()
 
-
 @strawberry.type
 class ThinSectionImagePairsQuery:
 
+
+
     @strawberry.field
     def default_pairs(self) -> ThinSectionImagePairs:
+        asset = db.session.execute(db.select(FOVAsset).filter_by(sample_path=str(THIN_SECTION_FOV_SAMPLE_PATH))).scalar()
         return ThinSectionImagePairs(
-            code="GDX-22-PI",
-            sample_id="A1",
+            code=asset.thin_section_id,
+            sample_id=asset.fov_id,
             label="Example pair",
         )
 
@@ -63,7 +67,8 @@ class ImageMutation:
         request = StartSessionRequest(
             type="start_session_image",
             path=f"{DATA_PATH}/{input.path}",
-            pairs_code=raw_pair_code
+            pairs_code=raw_pair_code,
+            sample_id=input.sample_id,
         )
         
         # The image API saves the embeddings here
@@ -79,6 +84,7 @@ class ImageMutation:
             type="add_points",
             session_id=input.session_id,
             image_path=input.image_path,
+            image_id=input.image_id.node_id,
             points=input.points,
             labels=input.labels,
             bboxes=input.bboxes,
@@ -110,6 +116,7 @@ class ImageMutation:
             type="add_points",
             session_id=input.session_id,
             image_path=input.image_path,
+            image_id=input.image_id.node_id,
             bbox=input.bbox,
         )
 

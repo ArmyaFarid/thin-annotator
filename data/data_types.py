@@ -9,7 +9,8 @@ from typing import Iterable, List, Optional
 
 import strawberry
 from app_conf import API_URL
-from data.resolver import resolve_images, resolve_videos, resolve_acquired_images, resolve_thin_section_image_pairs
+from data.resolver import resolve_images, resolve_videos, resolve_acquired_images, resolve_thin_section_image_pairs, \
+    resolve_acquired_images_from_db
 from dataclasses_json import dataclass_json
 from strawberry import relay
 
@@ -64,7 +65,7 @@ class Image(relay.Node):
 
     @strawberry.field
     def url(self) -> str:
-        return f"{API_URL}/{self.path}"
+        return f"{API_URL}/image/{self.code}"
 
     @strawberry.field
     def thumbnail_url(self) -> Optional[str]:
@@ -136,7 +137,8 @@ class ThinSectionImagePairs(relay.Node):
         Order is preserved (e.g. XPL-0deg → XPL-45deg → XPL-90deg → PPL).
         """
         if self._acquired_cache is None:
-            self._acquired_cache = resolve_acquired_images(self.code)
+            # self._acquired_cache = resolve_acquired_images(self.code)
+            self._acquired_cache = resolve_acquired_images_from_db(self.code,self.sample_id)
             # compute types at the same time
             self._polarized_filter_types = [resolved_acquired_image.polarized_filter_type for resolved_acquired_image in self._acquired_cache]
             self._gammas = [resolved_acquired_image.gamma for resolved_acquired_image in self._acquired_cache]
@@ -215,6 +217,7 @@ class RLEMaskListOnFrame:
 class StartSessionInput:
     path: str
     pairs_code : strawberry.ID
+    sample_id: str
 
 
 @strawberry.type
@@ -257,6 +260,7 @@ class AddPointsInput:
 class AddPointsImageInput:
     session_id: str
     image_path: str
+    image_id : strawberry.relay.GlobalID
     object_id: int
     labels: List[int]
     points: List[List[float]]
@@ -267,6 +271,7 @@ class AddPointsImageInput:
 class SlicImageInput:
     session_id: str
     image_path: str
+    image_id: strawberry.relay.GlobalID
     bbox: List[float]
 
 @strawberry.input

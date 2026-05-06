@@ -29,3 +29,9 @@ class FOVAsset(db.Model):
     sample_path = db.Column(db.String(255), nullable=False)
 
     sam_cache_path = db.Column(db.String(255))
+
+    width = db.Column(db.Integer, default=0)
+
+    height = db.Column(db.Integer, default=0)
+
+    thumbnail_path = db.Column(db.String(255), nullable=False)

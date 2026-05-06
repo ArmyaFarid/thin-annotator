@@ -19,6 +19,7 @@ import numpy as np
 import torch
 from app_conf import APP_ROOT, MODEL_SIZE, SAM_PREPROCESSED_IMAGE_PATH, DATA_PATH
 from data.csv_queries import save_sam_cache_path, get_row_by_image_path, load_pairs_csv
+from extensions import db
 from inference.data_types import (
     AddPointsImageRequest,
     CloseSessionRequest,
@@ -32,6 +33,8 @@ from inference.data_types import (
 from pycocotools.mask import decode as decode_masks, encode as encode_masks
 from sam2.build_sam import build_sam2
 from sam2.sam2_image_predictor import SAM2ImagePredictor
+
+from models import FOVAsset
 
 logger = logging.getLogger(__name__)
 
@@ -102,81 +105,50 @@ class InferenceImageAPI:
             return torch.autocast("cuda", dtype=torch.bfloat16)
         else:
             return contextlib.nullcontext()
-        
-    def start_session(self, request: StartSessionRequest) -> StartSessionResponse:
-        with self.autocast_context(), self.inference_lock:
-            session_id = str(uuid.uuid4())
-            
-            # Load the image (using PIL or OpenCV)
-            image = Image.open(request.path)
-            image_np = np.array(image.convert("RGB"))
-            
-            # This encodes the image and stores features inside self.predictor
-            self.predictor.set_image(image_np)
-
-            # image_embedding = predictor.get_image_embedding()
-            # torch.save(image_embedding, "image_embedding.pt")
-
-            # # save the high res features
-            # high_res_features = predictor.get_high_res_features()
-            # torch.save(high_res_features, "high_res_features.pt")
-
-            session_state = {}
-            if self.is_gpu:
-                session_state = {
-                    "image_embedding": self.predictor.get_image_embedding(),
-                    "high_res_features": self.predictor.get_high_res_features(),
-                    "orig_hw": image_np.shape[:2],
-                }
-            else:
-                session_state = {
-                    "image_embedding": self.predictor.get_image_embedding().cpu(),
-                    "high_res_features": self.predictor.get_high_res_features(),
-                    "orig_hw": image_np.shape[:2],
-                }
-            
-            # We save the features in the session so we can swap back if 
-            # the user changes which image they are working on
-            # self.session_states[session_id] = {
-            #     "features": self.predictor.get_image_embedding(),
-            #     "orig_hw": image_np.shape[:2]
-            # }
-            self.session_states[session_id] = session_state
-            return StartSessionResponse(session_id=session_id)
 
     def start_session(self, request: StartSessionRequest) -> StartSessionResponse:
         with self.autocast_context(), self.inference_lock:
             session_id = str(uuid.uuid4())
 
-            pairs = load_pairs_csv()
-            pair_rows = pairs.get(request.pairs_code, [])
+            assets = FOVAsset.query.filter_by(
+                thin_section_id=request.pairs_code,
+                fov_id=request.sample_id
+            ).all()
 
-            if not pair_rows:
+            if not assets:
                 raise ValueError(f"No images found for pair_code: {request.pairs_code}")
 
             image_cache_map = {}
-            for row in pair_rows:
-                cache_path = self._encode_and_save(row["image"])
-                image_cache_map[row["image"]] = cache_path
+            for row in assets:
+                cache_path = self._encode_and_save(row.image_path)
+                image_cache_map[row.id] = cache_path
+                row.cache_path = cache_path
 
             self.session_states[session_id] = {
                 "pair_code": request.pairs_code,
                 "image_cache_map": image_cache_map,
                 "created_at": time.time(),
             }
-
+            try:
+                db.session.commit()
+                print(f"Successfully updated cache paths for {len(assets)} assets.")
+            except Exception as e:
+                db.session.rollback()  # Undo changes if something goes wrong
+                print(f"Failed to save to database: {e}")
+                raise
             return StartSessionResponse(session_id=session_id)
 
     def _encode_and_save(self, image_path: str) -> str:
-        csv_row = get_row_by_image_path(image_path)
-        cached_path = csv_row.get("sam_cache") if csv_row else None
+
+        asset = FOVAsset.query.filter_by(image_path=image_path).first()
+        cached_path = asset.sam_cache_path if asset else None
 
         if cached_path and os.path.exists(cached_path):
             print(f"[SAM] Cache already exists for {image_path}, skipping encoding")
             return cached_path
 
         print(f"[SAM] Encoding image: {image_path}")
-        image = Image.open(f"{DATA_PATH}/{image_path}")
+        image = Image.open(image_path)
         image_np = np.array(image.convert("RGB"))
         self.predictor.set_image(image_np)
 
@@ -195,7 +167,20 @@ class InferenceImageAPI:
             "orig_hw": image_np.shape[:2],
         }, cache_path)
 
-        save_sam_cache_path(image_path, cache_path)
+        if asset:
+            # 2. Update the attribute
+            asset.sam_cache_path = cache_path
+
+            # 3. Commit the change to the database
+            try:
+                db.session.commit()
+            except Exception as e:
+                db.session.rollback()
+                print(f"Error saving cache path: {e}")
+        else:
+            # Optional: Handle the case where the image isn't in the DB yet
+            print(f"Warning: No database record found for path {image_path}")
+
         print(f"[SAM] Saved cache: {cache_path}")
         return cache_path
 
@@ -209,28 +194,12 @@ class InferenceImageAPI:
             
             # Restore the image features for this specific session
             self.predictor.reset_predictor() # Clear old internal state
-            
-            # print(session["image_embedding"])
-
-            # self.predictor.features = session["features"]
-            # self.predictor.orig_hw = session["orig_hw"]
-            # self.predictor.is_image_set = True
-
-            # self.predictor.image_embedding = session["image_embedding"].to(self.device)
-            # self.predictor.high_res_features = session["high_res_features"].to(self.device)
-            # self.predictor.orig_hw = session["orig_hw"]
-
-            # self.predictor.set_image_embedding(
-            #         image_embedding = session["image_embedding"].to(self.device),
-            #         img_hw = session["orig_hw"],
-            #         high_res_features = session["high_res_features"]
-            # )
 
             print(request.image_path)
 
-            cache_path = session["image_cache_map"][request.image_path]
+            cache_path = session["image_cache_map"][request.image_id]
 
-            print(request.image_path)
+            print(request.image_id)
             print(cache_path)
             session_data = torch.load(cache_path,weights_only=True)
 
@@ -239,16 +208,6 @@ class InferenceImageAPI:
                 img_hw=session_data["orig_hw"],
                 high_res_features=session_data["high_res_features"]
             )
-
-            # self.predictor.is_image_set = True
-
-            # Run the prediction with the new points
-            # masks, scores, logits = self.predictor.predict(
-            #     point_coords=np.array(request.points),
-            #     point_labels=np.array(request.labels),
-            #     box=np.array(request.bboxes),
-            #     multimask_output=False, # We usually want the single best mask
-            # )
 
             points = np.array(request.points)
             labels = np.array(request.labels)
@@ -280,15 +239,7 @@ class InferenceImageAPI:
 
 
             # masks is [1, H, W] after squeeze or indexing
-            masks_binary = masks[0] 
-
-
-            # --- DEBUGGING: SAVE IMAGE TO DISK ---
-            # This converts the boolean mask to a grayscale image (0 or 255)
-            # debug_img = Image.fromarray((masks_binary * 255).astype(np.uint8))
-            # debug_img.save("debug_mask.png")
-            # print(f"Debug mask saved. Shape: {masks_binary.shape}, Sum: {np.sum(masks_binary)}")
-            # -------------------------------------
+            masks_binary = masks[0]
 
             # Convert to RLE for the frontend
             rle_mask_list = self.__get_rle_mask_list(
@@ -326,11 +277,11 @@ class InferenceImageAPI:
         with self.autocast_context(), self.inference_lock:
             session = self.__get_session(request.session_id)
 
-            print(request.image_path)
+            asset = FOVAsset.query.filter_by(id=request.image_id).first()
 
-            cache_path = session["image_cache_map"][request.image_path]
+            print(asset.image_path)
 
-            image = Image.open(f"{DATA_PATH}/{request.image_path}")
+            image = Image.open(asset.image_path)
             image_np = np.array(image.convert("RGB"))
 
             bbox = np.array(request.bbox)

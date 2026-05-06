@@ -45,6 +45,10 @@ def init_thin_section_fov_images():
                 image_path=image_path_str
             ).first()
 
+            image = get_image(file_path,fov_images_path)
+
+            print(image)
+
             if existing_asset:
                 # --- UPDATE LOGIC ---
                 print(f"Updating existing asset: {image_name}")
@@ -53,7 +57,10 @@ def init_thin_section_fov_images():
                 existing_asset.lighting_modality = fov_metadata["lighting_modality"]
                 existing_asset.gamma = fov_metadata["gamma"]
                 existing_asset.stage_angle = fov_metadata["stage_angle"]
-                existing_asset.sample_path = str(fov_images_path.parent)
+                existing_asset.sample_path = str(fov_images_path)
+                existing_asset.width = image.width
+                existing_asset.height = image.height
+                existing_asset.thumbnail_path = image.thumbnail_path
             else:
                 # --- INSERT LOGIC ---
                 print(f"Creating new asset: {image_name}")
@@ -64,7 +71,10 @@ def init_thin_section_fov_images():
                     lighting_modality=fov_metadata["lighting_modality"],
                     gamma=fov_metadata["gamma"],
                     stage_angle=fov_metadata["stage_angle"],
-                    sample_path=str(fov_images_path.parent)
+                    sample_path=str(fov_images_path),
+                    width=image.width,
+                    height=image.height,
+                    thumbnail_path=image.thumbnail_path
                 )
                 new_assets.append(new_asset)
 

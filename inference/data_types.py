@@ -29,6 +29,7 @@ class StartSessionRequest(BaseRequest):
     type: str
     path: str
     pairs_code: Optional[str] = None
+    sample_id : Optional[str] = None
     session_id: Optional[str] = None
 
 
@@ -77,6 +78,7 @@ class AddPointsImageRequest(BaseRequest):
     type: str
     session_id: str
     image_path: str
+    image_id : str
     labels: List[int]
     points: List[List[float]]
     bboxes: List[List[float]]
@@ -88,6 +90,7 @@ class SlicImageRequest(BaseRequest):
     type: str
     session_id: str
     image_path: str
+    image_id: str
     bbox: List[float]
 
 @dataclass_json

@@ -23,7 +23,7 @@ from app_conf import (
 )
 from data.schema import schema
 from data.store import set_images
-from flask import Flask, make_response, Request, request, Response, send_from_directory
+from flask import Flask, make_response, Request, request, Response, send_from_directory, abort, send_file
 from flask_cors import CORS
 from inference.data_types import PropagateDataResponse, PropagateInVideoRequest
 from inference.multipart import MultipartResponseBuilder
@@ -36,7 +36,7 @@ import webbrowser
 from threading import Timer
 
 from extensions import db
-
+from models import FOVAsset
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
 # This prevents certain libraries from trying to manage threads themselves
@@ -103,6 +103,25 @@ def send_gallery_video(path: str) -> Response:
     except:
         raise ValueError("resource not found")
 
+@app.route("/image/<image_id>", methods=["GET"])
+def serve_fov_image(image_id: str):
+    # 1. Look up the record by its UUID
+    # We use .get() because 'id' is your primary key
+    asset = FOVAsset.query.get(image_id)
+
+    # 2. Check if the ID exists in the database
+    if not asset:
+        return abort(404, description="Image ID not found")
+
+    # 3. Verify the physical file actually exists at that path
+    if not os.path.exists(asset.image_path):
+        return abort(404, description="Physical image file missing on server")
+
+    # 4. Serve the file directly
+    try:
+        return send_file(asset.image_path)
+    except Exception as e:
+        return abort(500, description=f"Error accessing file: {str(e)}")
 
 @app.route(f"/{POSTERS_PREFIX}/<path:path>", methods=["GET"])
 def send_poster_image(path: str) -> Response:
@@ -179,6 +198,6 @@ if __name__ == "__main__":
     # t.start()
 
     try:
-        app.run(host="0.0.0.0", port=7263, debug=False, use_reloader=False)
+        app.run(host="0.0.0.0", port=7263, debug=True, use_reloader=True)
     except KeyboardInterrupt:
         print("Shutting down...")
