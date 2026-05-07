@@ -20,7 +20,7 @@ from app_conf import (
 )
 from strawberry.file_uploads import Upload
 
-from data.image_schema import ImageMutation, ImageQuery, ThinSectionImagePairsQuery
+from data.image_schema import ImageMutation, ImageQuery, ThinSectionImagePairsQuery, AnnotationMutation
 
 
 @strawberry.type
@@ -31,7 +31,7 @@ class Query(ImageQuery,ThinSectionImagePairsQuery):
     pass
 
 @strawberry.type
-class Mutation(ImageMutation):
+class Mutation(ImageMutation,AnnotationMutation):
     pass
 
 

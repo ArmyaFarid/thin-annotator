@@ -6,7 +6,7 @@ from typing import Iterable, List
 from data.data_types import (
     AddPointsImageInput, Image, StartSessionInput, StartSession,
     AddPointsInput, RLEMaskListOnFrame,
-    RLEMaskForObject, RLEMask, ThinSectionImagePairs, SlicImageInput
+    RLEMaskForObject, RLEMask, ThinSectionImagePairs, SlicImageInput, SaveAnnotationsResult
 )
 from app_conf import DATA_PATH, THIN_SECTION_FOV_SAMPLE_PATH
 from extensions import db
@@ -51,6 +51,14 @@ class ThinSectionImagePairsQuery:
             label="Example pair",
         )
 
+    @strawberry.field
+    def get_pairs(self,pairs_code: str, sample_id: str) -> ThinSectionImagePairs:
+        return ThinSectionImagePairs(
+            code=pairs_code,
+            sample_id=sample_id,
+            label="Example pair",
+        )
+
 
 @strawberry.type
 class ImageMutation:
@@ -82,7 +90,7 @@ class ImageMutation:
         # Image Way: Frame index is always 0
         request = AddPointsImageRequest(
             type="add_points",
-            session_id=input.session_id,
+            # session_id=input.session_id,
             image_path=input.image_path,
             image_id=input.image_id.node_id,
             points=input.points,
@@ -114,7 +122,7 @@ class ImageMutation:
         # Image Way: Frame index is always 0
         request = SlicImageRequest(
             type="add_points",
-            session_id=input.session_id,
+            # session_id=input.session_id,
             image_path=input.image_path,
             image_id=input.image_id.node_id,
             bbox=input.bbox,
@@ -135,3 +143,12 @@ class ImageMutation:
                 for r in response.results
             ],
         )
+
+
+@strawberry.type
+class AnnotationMutation:
+
+    @strawberry.mutation
+    def saveAnnotations(self, input: AddPointsImageInput, info: strawberry.Info) -> SaveAnnotationsResult:
+        return SaveAnnotationsResult(success=True)
+

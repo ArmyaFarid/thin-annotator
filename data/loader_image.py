@@ -24,8 +24,18 @@ from extensions import db
 from models import FOVAsset
 
 
-def init_thin_section_fov_images():
-    fov_images_path = THIN_SECTION_FOV_SAMPLE_PATH
+def init_thin_section_fov_images(fov_images_path=None):
+    if fov_images_path is None:
+        fov_images_path = THIN_SECTION_FOV_SAMPLE_PATH
+    else:
+        fov_images_path = Path(fov_images_path)
+
+    if not fov_images_path.exists():
+        raise FileNotFoundError(
+            f"The directory '{fov_images_path}' was not found. "
+            "Please check your THIN_SECTION_FOV_SAMPLE_PATH configuration."
+        )
+
     fov_id = fov_images_path.name
     thin_section_id = fov_images_path.parent.name
 
@@ -82,7 +92,7 @@ def init_thin_section_fov_images():
         db.session.add_all(new_assets)
     db.session.commit()
     print("Database sync complete.")
-    return 0
+    return thin_section_id , fov_id
 
 def preload_data_img() -> Dict[str, Image]:
     """

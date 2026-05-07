@@ -76,7 +76,7 @@ class AddPointsRequest(BaseRequest):
 @dataclass
 class AddPointsImageRequest(BaseRequest):
     type: str
-    session_id: str
+    # session_id: str
     image_path: str
     image_id : str
     labels: List[int]
@@ -88,7 +88,7 @@ class AddPointsImageRequest(BaseRequest):
 @dataclass
 class SlicImageRequest(BaseRequest):
     type: str
-    session_id: str
+    # session_id: str
     image_path: str
     image_id: str
     bbox: List[float]

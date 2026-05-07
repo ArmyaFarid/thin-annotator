@@ -23,7 +23,8 @@ from app_conf import (
 )
 from data.schema import schema
 from data.store import set_images
-from flask import Flask, make_response, Request, request, Response, send_from_directory, abort, send_file
+import json
+from flask import Flask, make_response, Request, request, Response, send_from_directory, abort, send_file, jsonify
 from flask_cors import CORS
 from inference.data_types import PropagateDataResponse, PropagateInVideoRequest
 from inference.multipart import MultipartResponseBuilder
@@ -36,6 +37,7 @@ import webbrowser
 from threading import Timer
 
 from extensions import db
+from load_project import pick_folder_and_init_section_fov_images
 from models import FOVAsset
 
 
@@ -138,6 +140,89 @@ def send_uploaded_video(path: str):
         raise ValueError("resource not found")
 
 
+@app.post("/api/pick-folder")
+def pick_folder_post():
+    return pick_folder_and_init_section_fov_images()
+
+@app.route("/api/annotations/save", methods=["POST"])
+def save_annotations():
+    # 1. Parse the incoming JSON request
+    body = request.get_json()
+    if not body:
+        return jsonify({"success": False, "error": "Invalid JSON"}), 400
+
+    pairs_code = body.get("pairsCode")
+    sample_id = body.get("sampleId")
+    annotation_data = body.get("data")
+
+    if not all([pairs_code, sample_id, annotation_data]):
+        return jsonify({"success": False, "error": "Missing required fields"}), 400
+
+    try:
+        # 2. Find the folder corresponding to (pairsCode, sampleId)
+        # We query the DB for any asset in that FOV to get its physical location
+        asset = FOVAsset.query.filter_by(
+            thin_section_id=pairs_code,
+            fov_id=sample_id
+        ).first()
+
+        if not asset:
+            return jsonify({"success": False, "error": "FOV folder not found in database"}), 404
+
+        # Get the parent directory of the image (the FOV folder)
+        fov_folder = Path(asset.image_path).parent
+
+        # 3. Write data as annotations.json inside that folder
+        file_path = fov_folder / "annotations.json"
+
+        with open(file_path, 'w', encoding='utf-8') as f:
+            json.dump(annotation_data, f, indent=4)
+
+        print(f"Annotations saved successfully for {pairs_code}/{sample_id} at {file_path}")
+
+        # 4. Return success
+        return jsonify({"success": True})
+
+    except Exception as e:
+        print(f"Error saving annotations: {str(e)}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/api/annotations/load", methods=["GET"])
+def load_annotations_endpoint():
+    # 1. Get query parameters from URL
+    pairs_code = request.args.get("pairsCode")
+    sample_id = request.args.get("sampleId")
+
+    if not pairs_code or not sample_id:
+        return jsonify({"success": False, "error": "Missing pairsCode or sampleId"}), 400
+
+    try:
+        # 2. Find any asset in this FOV to resolve the directory path
+        asset = FOVAsset.query.filter_by(
+            thin_section_id=pairs_code,
+            fov_id=sample_id
+        ).first()
+
+        if not asset:
+            return jsonify({"success": False, "error": "FOV folder not found in database"}), 404
+
+        # Resolve the folder path from the image path
+        fov_folder = Path(asset.image_path).parent
+        annotation_file = fov_folder / "annotations.json"
+
+        # 3. Check for file and load data
+        annotations = None
+        if annotation_file.exists():
+            with open(annotation_file, 'r', encoding='utf-8') as f:
+                annotations = json.load(f)
+
+        # 4. Return the response
+        return jsonify({"annotations": annotations})
+
+    except Exception as e:
+        print(f"Error loading annotations: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
 
 class MyGraphQLView(GraphQLView):
     def get_context(self, request: Request, response: Response) -> Any:
@@ -164,7 +249,7 @@ app.add_url_rule(
 )
 
 
-def start_backend_logic():
+def start_backend_logic(debug: bool = False , use_reloader: bool = False):
     # Ensure environment variables are set inside the new process
     os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
     os.environ['OMP_NUM_THREADS'] = '1'
@@ -182,4 +267,4 @@ def start_backend_logic():
         init_thin_section_fov_images()
 
     # Run the app (this will block the process)
-    app.run(host="0.0.0.0", port=7263, debug=False, use_reloader=False)
+    app.run(host="0.0.0.0", port=7263, debug=debug, use_reloader=use_reloader)

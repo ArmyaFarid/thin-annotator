@@ -8,6 +8,8 @@ from enum import Enum
 from typing import Iterable, List, Optional
 
 import strawberry
+from strawberry.scalars import JSON
+
 from app_conf import API_URL
 from data.resolver import resolve_images, resolve_videos, resolve_acquired_images, resolve_thin_section_image_pairs, \
     resolve_acquired_images_from_db
@@ -213,6 +215,9 @@ class RLEMaskListOnFrame:
     rle_mask_list: List[RLEMaskForObject]
 
 
+
+
+
 @strawberry.input
 class StartSessionInput:
     path: str
@@ -258,7 +263,7 @@ class AddPointsInput:
 
 @strawberry.input
 class AddPointsImageInput:
-    session_id: str
+    # session_id: str
     image_path: str
     image_id : strawberry.relay.GlobalID
     object_id: int
@@ -269,26 +274,17 @@ class AddPointsImageInput:
 
 @strawberry.input
 class SlicImageInput:
-    session_id: str
+    # session_id: str
     image_path: str
     image_id: strawberry.relay.GlobalID
     bbox: List[float]
 
-@strawberry.input
-class ClearPointsInFrameInput:
-    session_id: str
-    frame_index: int
-    object_id: int
-
 
 @strawberry.input
-class ClearPointsInVideoInput:
-    session_id: str
-
-
-@strawberry.type
-class ClearPointsInVideo:
-    success: bool
+class SaveAnnotationsInput:
+    pairsCode: str
+    sampleId: str
+    data: JSON
 
 
 @strawberry.input
@@ -297,20 +293,6 @@ class RemoveObjectInput:
     object_id: int
 
 
-@strawberry.input
-class PropagateInVideoInput:
-    session_id: str
-    start_frame_index: int
-
-
-@strawberry.input
-class CancelPropagateInVideoInput:
-    session_id: str
-
-
-@strawberry.type
-class CancelPropagateInVideo:
-    success: bool
 
 
 @strawberry.type
@@ -319,3 +301,8 @@ class SessionExpiration:
     expiration_time: int
     max_expiration_time: int
     ttl: int
+
+
+@strawberry.type
+class SaveAnnotationsResult:
+    success: bool
