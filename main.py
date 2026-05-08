@@ -10,8 +10,6 @@ import signal
 import sys
 from typing import Any, Generator
 
-from flask_sqlalchemy import SQLAlchemy
-
 from app_conf import (
     GALLERY_PATH,
     GALLERY_PREFIX,
@@ -19,7 +17,7 @@ from app_conf import (
     POSTERS_PREFIX,
     UPLOADS_PATH,
     UPLOADS_PREFIX,
-    get_resource_path,
+    get_resource_path, get_writable_dir,
 )
 from data.schema import schema
 from data.store import set_images
@@ -52,7 +50,7 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__,static_folder=get_resource_path("frontend_payload"))
 
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(app.instance_path, 'test.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + str(get_writable_dir() / 'thinAnnotator.db')
 db.init_app(app)
 
 cors = CORS(app, supports_credentials=True)

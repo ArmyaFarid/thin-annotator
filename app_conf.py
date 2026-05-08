@@ -19,7 +19,7 @@ def get_writable_dir():
     # Option A: A hidden folder in the User's Home (Professional way)
     # macOS: /Users/name/.geosam
     # Windows: C:\Users\name\.geosam
-    path = Path.home() / ".geosam"
+    path = Path.home() / ".thinAnnotatorData"
     path.mkdir(parents=True, exist_ok=True)
     return path
 
