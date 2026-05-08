@@ -11,7 +11,7 @@ datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 
 
 a = Analysis(
-    ['app.py'],
+    ['launcher.py'],
     pathex=['/Users/armyabakouan/UQAC/RESEARCH/experiments/sam2'],
     binaries=binaries,
     datas=datas,

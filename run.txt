@@ -12,7 +12,7 @@ gunicorn --worker-class gthread app:app --workers 1 --threads 2 --bind 0.0.0.0:7
 
 
 pyinstaller --noconfirm --onedir --windowed \
-    --name "GeoSAM_Lab_Portable" \
+    --name "ThinAnnotator" \
     --paths "/Users/armyabakouan/UQAC/RESEARCH/experiments/sam2" \
     --add-data "frontend_payload:frontend_payload" \
     --add-data "checkpoints:checkpoints" \
@@ -20,11 +20,11 @@ pyinstaller --noconfirm --onedir --windowed \
     --collect-all torch \
     --collect-submodules sam2 \
     --hidden-import sam2.modeling.backbones.hieradet \
-    app.py
+    launcher.py
 
 
 pyinstaller --noconfirm --onedir --windowed `
-    --name "GeoSAM_Lab_Portable" `
+    --name "ThinAnnotator" `
     --paths "C:\Users\YourUser\Documents\experiments\sam2" `
     --add-data "frontend_payload;frontend_payload" `
     --add-data "checkpoints;checkpoints" `
@@ -33,49 +33,4 @@ pyinstaller --noconfirm --onedir --windowed `
     --collect-all torch `
     --collect-submodules sam2 `
     --hidden-import sam2.modeling.backbones.hieradet `
-    app.py
-
-
-
-python -m nuitka --standalone --show-progress `
-    --onefile `
-    --windows-disable-console `
-    --output-dir=build_nuitka `
-    --project-name="GeoSAM_Lab_Portable" `
-    --include-data-dir="frontend_payload=frontend_payload" `
-    --include-data-dir="checkpoints=checkpoints" `
-    --include-data-dir="configs=configs" `
-    --include-data-dir="C:\Users\YourUser\Documents\experiments\sam2\sam2=sam2" `
-    --enable-plugin=torch `
-    --enable-plugin=anti-bloat `
-    --follow-imports `
-    app.py
-
-
-
-python3 -m nuitka --standalone --show-progress \
-    --macos-create-app-bundle \
-    --onefile \
-    --output-dir=build_nuitka \
-    --project-name="GeoSAM_Lab_Portable_nuitka" \
-    --include-data-dir="frontend_payload:frontend_payload" \
-    --include-data-dir="checkpoints:checkpoints" \
-    --include-data-dir="configs:configs" \
-    --include-data-dir="/Users/armyabakouan/UQAC/RESEARCH/experiments/sam2/sam2:sam2" \
-    --enable-plugin=torch \
-    --enable-plugin=anti-bloat \
-    --follow-imports \
-    app.py
-
-
-python3 -m nuitka --standalone --show-progress \
-    --macos-create-app-bundle \
-    --output-dir=build_nuitka \
-    --macos-app-name="GeoSAM_Lab_Nutkia" \
-    --bin-name="GeoSAM_Lab_Nutkia" \
-    --include-data-dir="frontend_payload=frontend_payload" \
-    --include-data-dir="checkpoints=checkpoints" \
-    --include-data-dir="configs=configs" \
-    --include-data-dir="/Users/armyabakouan/UQAC/RESEARCH/experiments/sam2/sam2=sam2" \
-    --enable-plugin=torch \
-    app.py
+    launcher.py

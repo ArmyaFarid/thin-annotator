@@ -252,6 +252,6 @@
 #         app.run(host="0.0.0.0", port=7263, debug=True, use_reloader=True)
 #     except KeyboardInterrupt:
 #         print("Shutting down...")
-from app_for_launcher import start_backend_logic
+from main import start_backend_logic
 
 start_backend_logic(debug=True,use_reloader=True)
