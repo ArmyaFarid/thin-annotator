@@ -49,8 +49,7 @@ def open_browser():
 
 logger = logging.getLogger(__name__)
 
-app = Flask(__name__,static_folder=get_resource_path("frontend_payload"),
-            static_url_path="/")
+app = Flask(__name__,static_folder=get_resource_path("frontend_payload"))
 
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(app.instance_path, 'test.db')

@@ -29,7 +29,7 @@ def main():
     kill_port(7263)
     
     root = tk.Tk()
-    root.title("GeoSAM Control Panel")
+    root.title("ThinAnnotator Control Panel")
     root.geometry("350x280")
 
     status_label = tk.Label(root, text="Server Status: Offline", fg="red", font=("Arial", 10, "bold"))
@@ -85,7 +85,9 @@ def main():
             browser_btn.config(state="disabled")
 
     def launch_browser():
-        webbrowser.open("http://127.0.0.1:7263")
+        url = "http://127.0.0.1:7263"
+        # webbrowser.open(url)
+        webbrowser.get("chrome").open(url)
 
     def on_closing():
         """Cleanup everything when the X button is clicked."""
@@ -97,7 +99,7 @@ def main():
     start_btn = tk.Button(root, text="Start Server", command=toggle_server, width=25, height=2)
     start_btn.pack(pady=5)
 
-    browser_btn = tk.Button(root, text="Open Web App", command=launch_browser, state="disabled", width=25, height=2)
+    browser_btn = tk.Button(root, text="Open annotator", command=launch_browser, state="disabled", width=25, height=2)
     browser_btn.pack(pady=5)
 
     exit_btn = tk.Button(root, text="Exit Entirely", command=on_closing, width=25, height=2)
