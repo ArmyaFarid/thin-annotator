@@ -9,3 +9,4 @@ pycocotools==2.0.11
 strawberry-graphql
 torch==2.11.0
 tqdm==4.67.3
+flask-sqlalchemy
