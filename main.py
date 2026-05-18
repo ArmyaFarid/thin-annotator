@@ -261,7 +261,7 @@ def start_backend_logic(debug: bool = False , use_reloader: bool = False):
 
     with app.app_context():
         db.create_all()
-        init_thin_section_fov_images()
+        # init_thin_section_fov_images()
 
     # Run the app (this will block the process)
     app.run(host="0.0.0.0", port=7263, debug=debug, use_reloader=use_reloader)
