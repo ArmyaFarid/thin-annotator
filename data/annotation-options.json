@@ -1,0 +1,73 @@
+{
+  "version": 1,
+
+  "mineralGroups": [
+    { "value": "tectosilicates",  "label": { "fr": "Tectosilicates",  "en": "Tectosilicates" } },
+    { "value": "phyllosilicates", "label": { "fr": "Phyllosilicates", "en": "Phyllosilicates" } },
+    { "value": "inosilicates",    "label": { "fr": "Inosilicates",    "en": "Inosilicates" } },
+    { "value": "nesosilicates",   "label": { "fr": "Nésosilicates",   "en": "Nesosilicates" } },
+    { "value": "cyclosilicates",  "label": { "fr": "Cyclosilicates",  "en": "Cyclosilicates" } },
+    { "value": "sorosilicates",   "label": { "fr": "Sorosilicates",   "en": "Sorosilicates" } },
+    { "value": "carbonates",      "label": { "fr": "Carbonates",      "en": "Carbonates" } },
+    { "value": "oxides",          "label": { "fr": "Oxydes",          "en": "Oxides" } },
+    { "value": "phosphates",      "label": { "fr": "Phosphates",      "en": "Phosphates" } }
+  ],
+
+  "minerals": [
+    { "value": "qtz",  "label": { "fr": "Quartz",      "en": "Quartz" },      "group": "tectosilicates" },
+    { "value": "kfs",  "label": { "fr": "Feldspath K", "en": "K-feldspar" },  "group": "tectosilicates" },
+    { "value": "plag", "label": { "fr": "Plagioclase", "en": "Plagioclase" }, "group": "tectosilicates" },
+    { "value": "ms",   "label": { "fr": "Muscovite",   "en": "Muscovite" },   "group": "phyllosilicates" },
+    { "value": "bt",   "label": { "fr": "Biotite",     "en": "Biotite" },     "group": "phyllosilicates" },
+    { "value": "chl",  "label": { "fr": "Chlorite",    "en": "Chlorite" },    "group": "phyllosilicates" },
+    { "value": "srp",  "label": { "fr": "Serpentine",  "en": "Serpentine" },  "group": "phyllosilicates" },
+    { "value": "hbl",  "label": { "fr": "Hornblende",  "en": "Hornblende" },  "group": "inosilicates" },
+    { "value": "aug",  "label": { "fr": "Augite",      "en": "Augite" },      "group": "inosilicates" },
+    { "value": "hyp",  "label": { "fr": "Hypersthène", "en": "Hypersthene" }, "group": "inosilicates" },
+    { "value": "ol",   "label": { "fr": "Olivine",     "en": "Olivine" },     "group": "nesosilicates" },
+    { "value": "grt",  "label": { "fr": "Grenat",      "en": "Garnet" },      "group": "nesosilicates" },
+    { "value": "zrn",  "label": { "fr": "Zircon",      "en": "Zircon" },      "group": "nesosilicates" },
+    { "value": "tur",  "label": { "fr": "Tourmaline",  "en": "Tourmaline" },  "group": "cyclosilicates" },
+    { "value": "ep",   "label": { "fr": "Épidote",     "en": "Epidote" },     "group": "sorosilicates" },
+    { "value": "ttn",  "label": { "fr": "Titanite",    "en": "Titanite" },    "group": "sorosilicates" },
+    { "value": "cal",  "label": { "fr": "Calcite",     "en": "Calcite" },     "group": "carbonates" },
+    { "value": "dol",  "label": { "fr": "Dolomite",    "en": "Dolomite" },    "group": "carbonates" },
+    { "value": "mag",  "label": { "fr": "Magnétite",   "en": "Magnetite" },   "group": "oxides" },
+    { "value": "ilm",  "label": { "fr": "Ilménite",    "en": "Ilmenite" },    "group": "oxides" },
+    { "value": "hem",  "label": { "fr": "Hématite",    "en": "Hematite" },    "group": "oxides" },
+    { "value": "ap",   "label": { "fr": "Apatite",     "en": "Apatite" },     "group": "phosphates" }
+  ],
+
+  "properties": {
+    "relief": [
+      { "value": "low",    "label": { "fr": "Faible", "en": "Low" } },
+      { "value": "medium", "label": { "fr": "Moyen",  "en": "Medium" } },
+      { "value": "high",   "label": { "fr": "Élevé",  "en": "High" } }
+    ],
+    "birefringence": [
+      { "value": "low",       "label": { "fr": "Faible",      "en": "Low" } },
+      { "value": "medium",    "label": { "fr": "Moyen",       "en": "Medium" } },
+      { "value": "high",      "label": { "fr": "Élevé",       "en": "High" } },
+      { "value": "very-high", "label": { "fr": "Très élevé",  "en": "Very high" } }
+    ],
+    "cleavage": [
+      { "value": "none",       "label": { "fr": "Aucun",      "en": "None" } },
+      { "value": "indistinct", "label": { "fr": "Indistinct", "en": "Indistinct" } },
+      { "value": "good",       "label": { "fr": "Bon",        "en": "Good" } },
+      { "value": "perfect",    "label": { "fr": "Parfait",    "en": "Perfect" } }
+    ],
+    "pleochroism": [
+      { "value": "none",   "label": { "fr": "Aucun",  "en": "None" } },
+      { "value": "weak",   "label": { "fr": "Faible", "en": "Weak" } },
+      { "value": "strong", "label": { "fr": "Fort",   "en": "Strong" } }
+    ],
+    "crystalSystem": [
+      { "value": "cubic",        "label": { "fr": "Cubique",        "en": "Cubic" } },
+      { "value": "tetragonal",   "label": { "fr": "Tétragonal",     "en": "Tetragonal" } },
+      { "value": "orthorhombic", "label": { "fr": "Orthorhombique", "en": "Orthorhombic" } },
+      { "value": "monoclinic",   "label": { "fr": "Monoclinique",   "en": "Monoclinic" } },
+      { "value": "triclinic",    "label": { "fr": "Triclinique",    "en": "Triclinic" } },
+      { "value": "hexagonal",    "label": { "fr": "Hexagonal",      "en": "Hexagonal" } }
+    ]
+  }
+}

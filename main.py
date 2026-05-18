@@ -19,6 +19,7 @@ from app_conf import (
     UPLOADS_PREFIX,
     get_resource_path, get_writable_dir,
 )
+from data.annotation_options import get_annotation_options
 from data.schema import schema
 from data.store import set_images
 import json
@@ -140,6 +141,11 @@ def send_uploaded_video(path: str):
 @app.post("/api/pick-folder")
 def pick_folder_post():
     return pick_folder_and_init_section_fov_images()
+
+
+@app.route("/api/annotation-options", methods=["GET"])
+def annotation_options():
+  return jsonify(get_annotation_options())
 
 @app.route("/api/annotations/save", methods=["POST"])
 def save_annotations():
