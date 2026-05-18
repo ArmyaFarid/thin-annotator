@@ -40,11 +40,14 @@ def main():
         "check_attempts": 0,
         "dot_count": 0,
         "after_id": None,
+        "server_ready": False,
     }
 
     MAX_WAIT_SECONDS = 180  # SAM2 can be slow — give it 3 minutes
 
     def animate_dots():
+        if state["server_ready"]:  # ADD THIS CHECK
+            return
         """Animates '...' to show the UI is alive during loading."""
         if state["process"] and state["process"].is_alive():
             state["dot_count"] = (state["dot_count"] + 1) % 4
@@ -76,6 +79,7 @@ def main():
         try:
             response = urllib.request.urlopen("http://127.0.0.1:7263/healthy", timeout=1)
             if response.getcode() == 200:
+                state["server_ready"] = True
                 progress_label.config(text="")
                 status_label.config(text="Server Status: Ready (Port 7263)", fg="green")
                 browser_btn.config(state="normal")
@@ -90,12 +94,13 @@ def main():
         if state["process"] is None or not state["process"].is_alive():
             state["check_attempts"] = 0
             state["dot_count"] = 0
+            state["server_ready"] = False
 
             state["process"] = multiprocessing.Process(target=start_backend_logic)
             state["process"].daemon = True
             state["process"].start()
 
-            status_label.config(text="Status: Loading SAM2 Models...", fg="orange")
+            status_label.config(text="Status: Loading thinAnnotator Models...", fg="orange")
             start_btn.config(text="Stop Server")
             browser_btn.config(state="disabled")
 
