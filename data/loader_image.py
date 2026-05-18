@@ -43,9 +43,12 @@ def init_thin_section_fov_images(fov_images_path=None):
     extensions = {".jpg", ".jpeg", ".png", ".tif", ".tiff", ".bmp"}
 
     new_assets = []
+
+    valid_image_count = 0
     
     for file_path in fov_images_path.iterdir():
         if file_path.suffix.lower() in extensions:
+            valid_image_count += 1
             image_name = file_path.name
             image_path_str = str(file_path)
             fov_metadata = parse_fov_filename(image_name)
@@ -56,8 +59,6 @@ def init_thin_section_fov_images(fov_images_path=None):
             ).first()
 
             image = get_image(file_path,fov_images_path)
-
-            print(image)
 
             if existing_asset:
                 # --- UPDATE LOGIC ---
@@ -88,11 +89,15 @@ def init_thin_section_fov_images(fov_images_path=None):
                 )
                 new_assets.append(new_asset)
 
+    # if valid_image_count == 0:
+    #     raise FileNotFoundError(
+    #         f"No valid images with matching extensions found in directory '{fov_images_path}'."
+    #     )
     if new_assets:
         db.session.add_all(new_assets)
     db.session.commit()
     print("Database sync complete.")
-    return thin_section_id , fov_id
+    return thin_section_id , fov_id , valid_image_count
 
 def preload_data_img() -> Dict[str, Image]:
     """

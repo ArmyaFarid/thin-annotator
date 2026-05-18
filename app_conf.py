@@ -34,7 +34,7 @@ logger.info(f"using model size {MODEL_SIZE}")
 FFMPEG_NUM_THREADS = int(os.getenv("FFMPEG_NUM_THREADS", "1"))
 
 # Path for all data used in API
-DATA_PATH = Path(os.getenv("DATA_PATH", "/Users/armyabakouan/UQAC/RESEARCH/experiments/web/sam2/data"))
+DATA_PATH = Path(os.getenv("DATA_PATH","./"))
 
 # Max duration an uploaded video can have in seconds. The default is 10
 # seconds.
@@ -73,7 +73,7 @@ SAM_PREPROCESSED_IMAGE_PREFIX = "sam-preprocessed"
 # Path where all uploaded videos are stored
 SAM_PREPROCESSED_IMAGE_PATH = get_writable_dir() / SAM_PREPROCESSED_IMAGE_PREFIX
 
-CSV_PATH = "/Users/armyabakouan/UQAC/RESEARCH/experiments/web/sam2/backend/server/data/gallery/image_pairs.csv"
+CSV_PATH = "./data/gallery/image_pairs.csv"
 
 # Make sure any of those paths exist
 os.makedirs(DATA_PATH, exist_ok=True)
@@ -84,5 +84,5 @@ os.makedirs(THUMBNAILS_PATH, exist_ok=True)
 os.makedirs(SAM_PREPROCESSED_IMAGE_PATH, exist_ok=True)
 
 
-THIN_SECTION_FOV_SAMPLE_PATH = Path(os.getenv("THIN_SECTION_FOV_SAMPLE_PATH", "/Users/armyabakouan/Documents/ThinAnnotatorData/DOSSIER_LAMES/GDX-22-PI/FOV_1"))
+THIN_SECTION_FOV_SAMPLE_PATH = Path(os.getenv("THIN_SECTION_FOV_SAMPLE_PATH", "./data"))
 

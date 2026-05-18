@@ -42,14 +42,7 @@ def pick_folder_sub() -> str | None:
 
 def pick_folder_and_init_section_fov_images():
     path = pick_folder_sub()
-    print(path)
-    # 2. index images into SQLite (your existing logic)
-    thin_section_id , fov_id = init_thin_section_fov_images(path)
-
-    # 3. check for existing annotation save file
-    # annotations = load_annotations(pairs_code,
-    #                                sample_id)  # None or Mask[]
-
+    thin_section_id , fov_id , image_count = init_thin_section_fov_images(path)
     annotations = None
     path = Path(path)
     annotation_file = path / "annotations.json"
@@ -64,4 +57,4 @@ def pick_folder_and_init_section_fov_images():
             # Keep annotations as None if file is corrupted
             annotations = None
 
-    return {"pairsCode": thin_section_id, "sampleId": fov_id, "annotations": annotations}
+    return {"pairsCode": thin_section_id,"image_count":image_count, "sampleId": fov_id, "annotations": annotations}
