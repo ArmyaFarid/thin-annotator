@@ -25,11 +25,11 @@ pyinstaller --noconfirm --onedir --windowed \
 
 pyinstaller --noconfirm --onedir --windowed `
     --name "ThinAnnotator" `
-    --paths "C:\Users\YourUser\Documents\experiments\sam2" `
+    --paths "C:/Users/Armya/Documents/ANNOTATOR/sam2" `
     --add-data "frontend_payload;frontend_payload" `
     --add-data "checkpoints;checkpoints" `
     --add-data "configs;configs" `
-    --add-data "C:\Users\YourUser\Documents\experiments\sam2\sam2;sam2" `
+    --add-data "C:/Users/Armya/Documents/ANNOTATOR/sam2/sam2;sam2" `
     --collect-all torch `
     --collect-submodules sam2 `
     --hidden-import sam2.modeling.backbones.hieradet `

@@ -253,8 +253,8 @@ def start_backend_logic(debug: bool = False , use_reloader: bool = False):
     """Function to initialize data and APIs inside the child process."""
     global inference_api, inference_image_api
 
-    images = preload_data_img()
-    set_images(images)
+    # images = preload_data_img()
+    # set_images(images)
 
     print("Initializing SAM 2 Models...")
     inference_image_api = InferenceImageAPI()
