@@ -39,6 +39,6 @@ Thumbs.db
 
 build*/
 
-frontend_payload*/
+#frontend_payload*/
 
 dist/*
