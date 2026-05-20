@@ -2,6 +2,8 @@
 # All rights reserved.
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
+#
+# Modifications Copyright (c) 2025 Armya BAKOUAN -- see NOTICE for details.
 
 import logging
 import os
@@ -149,7 +151,6 @@ def annotation_options():
 
 @app.route("/api/annotations/save", methods=["POST"])
 def save_annotations():
-    # 1. Parse the incoming JSON request
     body = request.get_json()
     if not body:
         return jsonify({"success": False, "error": "Invalid JSON"}), 400
@@ -162,8 +163,6 @@ def save_annotations():
         return jsonify({"success": False, "error": "Missing required fields"}), 400
 
     try:
-        # 2. Find the folder corresponding to (pairsCode, sampleId)
-        # We query the DB for any asset in that FOV to get its physical location
         asset = FOVAsset.query.filter_by(
             thin_section_id=pairs_code,
             fov_id=sample_id
@@ -172,10 +171,8 @@ def save_annotations():
         if not asset:
             return jsonify({"success": False, "error": "FOV folder not found in database"}), 404
 
-        # Get the parent directory of the image (the FOV folder)
         fov_folder = Path(asset.image_path).parent
 
-        # 3. Write data as annotations.json inside that folder
         file_path = fov_folder / "annotations.json"
 
         with open(file_path, 'w', encoding='utf-8') as f:
@@ -183,7 +180,6 @@ def save_annotations():
 
         print(f"Annotations saved successfully for {pairs_code}/{sample_id} at {file_path}")
 
-        # 4. Return success
         return jsonify({"success": True})
 
     except Exception as e:
@@ -193,7 +189,6 @@ def save_annotations():
 
 @app.route("/api/annotations/load", methods=["GET"])
 def load_annotations_endpoint():
-    # 1. Get query parameters from URL
     pairs_code = request.args.get("pairsCode")
     sample_id = request.args.get("sampleId")
 
@@ -201,7 +196,6 @@ def load_annotations_endpoint():
         return jsonify({"success": False, "error": "Missing pairsCode or sampleId"}), 400
 
     try:
-        # 2. Find any asset in this FOV to resolve the directory path
         asset = FOVAsset.query.filter_by(
             thin_section_id=pairs_code,
             fov_id=sample_id
@@ -210,17 +204,14 @@ def load_annotations_endpoint():
         if not asset:
             return jsonify({"success": False, "error": "FOV folder not found in database"}), 404
 
-        # Resolve the folder path from the image path
         fov_folder = Path(asset.image_path).parent
         annotation_file = fov_folder / "annotations.json"
 
-        # 3. Check for file and load data
         annotations = None
         if annotation_file.exists():
             with open(annotation_file, 'r', encoding='utf-8') as f:
                 annotations = json.load(f)
 
-        # 4. Return the response
         return jsonify({"annotations": annotations})
 
     except Exception as e:

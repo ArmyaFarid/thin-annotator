@@ -42,3 +42,8 @@ build*/
 #frontend_payload*/
 
 dist/*
+
+# --- Claude Code ---
+.claude/
+CLAUDE.md
+.claude.json
