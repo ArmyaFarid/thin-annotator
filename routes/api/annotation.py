@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 
 from flask import Blueprint, jsonify, request
@@ -31,9 +32,9 @@ def save_annotations():
         if not asset:
             return jsonify({"success": False, "error": "FOV folder not found in database"}), 404
 
-        fov_folder = Path(asset.image_path).parent
 
-        file_path = fov_folder / "annotations.json"
+        img_base_path, ext = os.path.splitext(asset.image_path)
+        file_path = f"{img_base_path}-annotations.json"
 
         with open(file_path, 'w', encoding='utf-8') as f:
             json.dump(annotation_data, f, indent=4)

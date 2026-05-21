@@ -10,7 +10,7 @@ project_blueprint = Blueprint('annotation', __name__)
 
 
 @project_blueprint.route("/api/project-annotations/save", methods=["POST"])
-def save_annotations():
+def save_project_annotations():
     body = request.get_json()
     if not body:
         return jsonify({"success": False, "error": "Invalid JSON"}), 400
@@ -48,7 +48,7 @@ def save_annotations():
 
 
 @project_blueprint.route("/api/project-annotations/load", methods=["GET"])
-def load_annotations_endpoint():
+def load_project_annotations_endpoint():
     pairs_code = request.args.get("pairsCode")
     sample_id = request.args.get("sampleId")
 
