@@ -1,0 +1,12 @@
+ThinAnnotator
+Based on SAM 2 (Segment Anything Model 2) by Meta Platforms, Inc.
+https://github.com/facebookresearch/sam2
+
+Original work: Copyright (c) Meta Platforms, Inc. and affiliates.
+Licensed under the Apache License, Version 2.0.
+
+Modifications and additions: Copyright (c) 2025 Armya BAKOUAN.
+Licensed under the Apache License, Version 2.0.
+
+This product includes software developed by Meta Platforms, Inc. and affiliates
+as part of the SAM 2 project.

@@ -14,7 +14,7 @@ gallery/
 *.jpg
 *.png
 #*.json
-
+*.bmp
 # --- Python & Environment ---
 # Virtual environments
 .venv/
