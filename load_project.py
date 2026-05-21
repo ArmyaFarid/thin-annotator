@@ -12,6 +12,8 @@ from data.loader_image import init_thin_section_fov_images
 import subprocess
 import sys
 
+from data.project_manager import get_project_data
+
 
 def pick_folder_sub() -> str | None:
     if sys.platform == "darwin":
@@ -47,18 +49,5 @@ def pick_folder_sub() -> str | None:
 def pick_folder_and_init_section_fov_images():
     path = pick_folder_sub()
     thin_section_id , fov_id , image_count = init_thin_section_fov_images(path)
-    annotations = None
-    path = Path(path)
-    annotation_file = path / "annotations.json"
-
-    if annotation_file.exists():
-        try:
-            with open(annotation_file, 'r', encoding='utf-8') as f:
-                annotations = json.load(f)
-            print(f"Loaded existing annotations from {annotation_file}")
-        except Exception as e:
-            print(f"Error reading existing annotations.json: {e}")
-            # Keep annotations as None if file is corrupted
-            annotations = None
-
+    annotations = get_project_data(path)
     return {"pairsCode": thin_section_id,"image_count":image_count, "sampleId": fov_id, "annotations": annotations}

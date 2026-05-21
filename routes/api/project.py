@@ -1,12 +1,15 @@
 import json
+import os
+from datetime import datetime
 from pathlib import Path
 
 from flask import Blueprint, jsonify, request
 
 from data.annotation_options import get_annotation_options
+from data.project_manager import get_project_data
 from models import FOVAsset
 
-project_blueprint = Blueprint('annotation', __name__)
+project_blueprint = Blueprint('project', __name__)
 
 
 @project_blueprint.route("/api/project/save", methods=["POST"])
@@ -18,6 +21,8 @@ def save_project_annotations():
     pairs_code = body.get("pairsCode")
     sample_id = body.get("sampleId")
     annotation_data = body.get("data")
+
+
 
     if not all([pairs_code, sample_id, annotation_data]):
         return jsonify({"success": False, "error": "Missing required fields"}), 400
@@ -33,11 +38,23 @@ def save_project_annotations():
 
         fov_folder = Path(asset.image_path).parent
 
-        file_path = fov_folder / "annotations.json"
+        file_path = fov_folder / "project.json"
 
-        with open(file_path, 'w', encoding='utf-8') as f:
-            json.dump(annotation_data, f, indent=4)
+        payload = {
+            "data": annotation_data,  # your list stays untouched
+            "_meta": {
+                "version": "1.0.0",
+                "saved_at": datetime.utcnow().isoformat(),
+                "pairs_code": pairs_code,
+                "sample_id": sample_id,
+            }
+        }
 
+        # Write to a temp file first, then rename (atomic on most OS)
+        tmp_path = file_path.with_suffix(".tmp")
+        with open(tmp_path, 'w', encoding='utf-8') as f:
+            json.dump(payload, f, indent=4)
+        os.replace(tmp_path, file_path)  # atomic rename
         print(f"Annotations saved successfully for {pairs_code}/{sample_id} at {file_path}")
 
         return jsonify({"success": True})
@@ -65,12 +82,8 @@ def load_project_annotations_endpoint():
             return jsonify({"success": False, "error": "FOV folder not found in database"}), 404
 
         fov_folder = Path(asset.image_path).parent
-        annotation_file = fov_folder / "annotations.json"
 
-        annotations = None
-        if annotation_file.exists():
-            with open(annotation_file, 'r', encoding='utf-8') as f:
-                annotations = json.load(f)
+        annotations = get_project_data(fov_folder)
 
         return jsonify({"annotations": annotations})
 

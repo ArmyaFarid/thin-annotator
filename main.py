@@ -40,6 +40,7 @@ from threading import Timer
 from extensions import db
 from load_project import pick_folder_and_init_section_fov_images
 from models import FOVAsset
+from routes.api.annotation import annotation_blueprint
 from routes.api.project import project_blueprint
 
 
@@ -62,6 +63,7 @@ inference_api = None
 inference_image_api = None
 
 app.register_blueprint(project_blueprint)
+app.register_blueprint(annotation_blueprint)
 
 @app.route("/")
 def serve_index():
