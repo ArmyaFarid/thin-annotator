@@ -6,11 +6,10 @@ from pathlib import Path
 from flask import Blueprint, jsonify, request
 
 from data.annotation_options import get_annotation_options
-from data.project_manager import get_project_data
+from data.project_manager import get_project_data, save_project_data
 from models import FOVAsset
 
 project_blueprint = Blueprint('project', __name__)
-
 
 @project_blueprint.route("/api/project/save", methods=["POST"])
 def save_project_annotations():
@@ -38,25 +37,7 @@ def save_project_annotations():
 
         fov_folder = Path(asset.image_path).parent
 
-        file_path = fov_folder / "project.json"
-
-        payload = {
-            "data": annotation_data,  # your list stays untouched
-            "_meta": {
-                "version": "1.0.0",
-                "saved_at": datetime.utcnow().isoformat(),
-                "pairs_code": pairs_code,
-                "sample_id": sample_id,
-            }
-        }
-
-        # Write to a temp file first, then rename (atomic on most OS)
-        tmp_path = file_path.with_suffix(".tmp")
-        with open(tmp_path, 'w', encoding='utf-8') as f:
-            json.dump(payload, f, indent=4)
-        os.replace(tmp_path, file_path)  # atomic rename
-        print(f"Annotations saved successfully for {pairs_code}/{sample_id} at {file_path}")
-
+        save_project_data(fov_folder,pairs_code,sample_id,annotation_data)
         return jsonify({"success": True})
 
     except Exception as e:
