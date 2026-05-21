@@ -9,7 +9,7 @@ from models import FOVAsset
 project_blueprint = Blueprint('annotation', __name__)
 
 
-@project_blueprint.route("/api/project-annotations/save", methods=["POST"])
+@project_blueprint.route("/api/project/save", methods=["POST"])
 def save_project_annotations():
     body = request.get_json()
     if not body:
@@ -47,7 +47,7 @@ def save_project_annotations():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
-@project_blueprint.route("/api/project-annotations/load", methods=["GET"])
+@project_blueprint.route("/api/project/load", methods=["GET"])
 def load_project_annotations_endpoint():
     pairs_code = request.args.get("pairsCode")
     sample_id = request.args.get("sampleId")
