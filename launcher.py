@@ -4,6 +4,7 @@
 
 import multiprocessing
 import sys
+import threading
 import webbrowser
 import tkinter as tk
 import urllib.request
@@ -11,7 +12,18 @@ import os
 import signal
 import subprocess
 import time
+from tkinter import filedialog, messagebox, ttk
+
+from dataset_manager.coco_extractor import build_dataset
 from main import start_backend_logic
+
+STEP_NAMES = {
+    "SCANNING": "Scanning dataset",
+    "JSON_FILES_COMPUTING": "Reading annotations",
+    "ZIPPING": "Writing ZIP archive",
+    "COPYING": "Copying uncompressed images",
+    "FINALIZING": "Finalizing dataset"
+}
 
 def kill_port(port):
     try:
@@ -147,11 +159,157 @@ def main():
         root.destroy()
         sys.exit(0)
 
+    def open_generate_dataset_window():
+        window = tk.Toplevel(root)
+        window.title("Generate COCO Dataset")
+        # Slightly taller to fit the checkbox comfortably
+        window.geometry("600x330")
+        window.resizable(False, False)
+
+        input_var = tk.StringVar()
+        output_var = tk.StringVar()
+
+        # ---------------- INPUT ----------------
+        tk.Label(window, text="Source Folder:").pack(anchor="w", padx=10, pady=(10, 0))
+
+        input_frame = tk.Frame(window)
+        input_frame.pack(fill="x", padx=10)
+
+        input_entry = tk.Entry(input_frame, textvariable=input_var, width=50)
+        input_entry.pack(side="left", expand=True, fill="x")
+
+        def browse_input():
+            folder = filedialog.askdirectory(title="Select Source Folder")
+            if folder:
+                input_var.set(folder)
+
+        tk.Button(input_frame, text="Browse", command=browse_input).pack(side="left", padx=5)
+
+        # ---------------- OUTPUT ----------------
+        tk.Label(window, text="Destination Folder:").pack(anchor="w", padx=10, pady=(10, 0))
+
+        output_frame = tk.Frame(window)
+        output_frame.pack(fill="x", padx=10)
+
+        output_entry = tk.Entry(output_frame, textvariable=output_var, width=50)
+        output_entry.pack(side="left", expand=True, fill="x")
+
+        def browse_output():
+            folder = filedialog.askdirectory(title="Select Destination Folder")
+            if folder:
+                output_var.set(folder)
+
+        tk.Button(output_frame, text="Browse", command=browse_output).pack(side="left", padx=5)
+
+        # ---------------- ZIP CHECKBOX ----------------
+        zip_var = tk.BooleanVar(value=False)  # Defaults to False (fast folder export)
+        zip_checkbox = tk.Checkbutton(
+            window,
+            text="Compress as .zip archive (Slower but saves space)",
+            variable=zip_var
+        )
+        zip_checkbox.pack(anchor="w", padx=10, pady=(10, 0))
+
+        # ---------------- PROGRESS UI COMPONENTS ----------------
+        progress_var = tk.DoubleVar(value=0)
+
+        progress_bar = ttk.Progressbar(
+            window,
+            variable=progress_var,
+            maximum=100,
+            length=400
+        )
+        progress_bar.pack(pady=(15, 10))
+
+        step_label = tk.Label(
+            window,
+            text="Preparing...",
+            font=("Arial", 10, "bold")
+        )
+        step_label.pack()
+
+        progress_label = tk.Label(window, text="Waiting...")
+        progress_label.pack()
+
+        def update_progress(current_action, current, total, filename):
+            percent = (current / total) * 100
+            filename = os.path.basename(str(filename))
+
+            def ui_update():
+                progress_var.set(percent)
+                step_label.config(
+                    text=STEP_NAMES.get(current_action, current_action)
+                )
+                progress_label.config(
+                    text=f"{current}/{total} • {filename} • {percent:.1f}%"
+                )
+
+            window.after(0, ui_update)
+
+        # ---------------- GENERATE LOGIC & BUTTON ----------------
+        def generate_dataset():
+            input_folder = input_var.get()
+            output_folder = output_var.get()
+
+            if not input_folder or not output_folder:
+                messagebox.showerror("Error", "Please select both folders.")
+                return
+
+            def worker():
+                try:
+                    # Get checkbox state: True if checked, False if not
+                    should_zip = zip_var.get()
+
+                    # Call the updated build_dataset function
+                    exported_path = build_dataset(
+                        root_dir=input_folder,
+                        output_dir=output_folder,
+                        zip_output=should_zip,
+                        progress_callback=update_progress
+                    )
+
+                    window.after(
+                        0,
+                        lambda: messagebox.showinfo(
+                            "Success",
+                            f"COCO dataset generated successfully!\n\nSaved to:\n{exported_path}"
+                        )
+                    )
+                    window.after(0, window.destroy)
+
+                except Exception as e:
+                    window.after(
+                        0,
+                        lambda: messagebox.showerror(
+                            "Generation Error",
+                            str(e)
+                        )
+                    )
+
+            threading.Thread(target=worker, daemon=True).start()
+
+        tk.Button(
+            window,
+            text="Generate",
+            command=generate_dataset,
+            width=20,
+            height=1
+        ).pack(pady=10)
+
     start_btn = tk.Button(root, text="Start Server", command=toggle_server, width=25, height=2)
     start_btn.pack(pady=5)
 
     browser_btn = tk.Button(root, text="Open Annotator", command=launch_browser, state="disabled", width=25, height=2)
     browser_btn.pack(pady=5)
+
+    collect_dataset_btn = tk.Button(
+        root,
+        text="Generate COCO dataset",
+        command=open_generate_dataset_window,
+        width=25,
+        height=2
+    )
+    collect_dataset_btn.pack(pady=5)
 
     exit_btn = tk.Button(root, text="Exit Entirely", command=on_closing, width=25, height=2)
     exit_btn.pack(pady=5)
