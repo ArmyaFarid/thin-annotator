@@ -36,7 +36,7 @@ logger.info(f"using model size {MODEL_SIZE}")
 FFMPEG_NUM_THREADS = int(os.getenv("FFMPEG_NUM_THREADS", "1"))
 
 # Path for all data used in API
-DATA_PATH = Path(os.getenv("DATA_PATH","./"))
+DATA_PATH = Path(os.getenv("DATA_PATH",get_writable_dir()))
 
 # Max duration an uploaded video can have in seconds. The default is 10
 # seconds.
