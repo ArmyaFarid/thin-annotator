@@ -1,3 +1,4 @@
+import base64
 import json
 import os
 from pathlib import Path
@@ -18,13 +19,27 @@ def save_annotations():
 
     pairs_code = body.get("pairsCode")
     sample_id = body.get("sampleId")
+    image_id = body.get("imageId")
     annotation_data = body.get("data")
+
+    print(image_id)
 
     if not all([pairs_code, sample_id, annotation_data]):
         return jsonify({"success": False, "error": "Missing required fields"}), 400
 
     try:
+        decoded = base64.b64decode(image_id).decode("utf-8")
+
+        print(decoded)
+        # Image:16fd1c9c-ba45-41f8-9e2f-18d70c4d6c73
+
+        entity_type, real_id = decoded.split(":", 1)
+
+        print(entity_type)  # Image
+        print(real_id)
+
         asset = FOVAsset.query.filter_by(
+            id=real_id,
             thin_section_id=pairs_code,
             fov_id=sample_id
         ).first()
