@@ -1,6 +1,9 @@
 {
   "version": 1,
 
+  "_comment": "Never reassign or reuse an ID, never reorder. Deprecated items should stay with deprecated=true.",
+
+
   "mineralGroups": [
     { "value": "tectosilicates",  "label": { "fr": "Tectosilicates",  "en": "Tectosilicates" } },
     { "value": "phyllosilicates", "label": { "fr": "Phyllosilicates", "en": "Phyllosilicates" } },
