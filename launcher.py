@@ -161,7 +161,7 @@ def main():
 
     def open_generate_dataset_window():
         window = tk.Toplevel(root)
-        window.title("Generate COCO Dataset")
+        window.title("Generate Thin-COCO Dataset")
         # Slightly taller to fit the checkbox comfortably
         window.geometry("600x330")
         window.resizable(False, False)
@@ -272,7 +272,7 @@ def main():
                         0,
                         lambda: messagebox.showinfo(
                             "Success",
-                            f"COCO dataset generated successfully!\n\nSaved to:\n{exported_path}"
+                            f"Thin-COCO dataset generated successfully!\n\nSaved to:\n{exported_path}"
                         )
                     )
                     window.after(0, window.destroy)
@@ -304,7 +304,7 @@ def main():
 
     collect_dataset_btn = tk.Button(
         root,
-        text="Generate COCO dataset",
+        text="Generate Thin-COCO dataset",
         command=open_generate_dataset_window,
         width=25,
         height=2
