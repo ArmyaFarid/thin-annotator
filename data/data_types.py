@@ -95,8 +95,8 @@ class Image(relay.Node):
 class PolarizedFilterType(Enum):
     PPL = "PPL"                  # Plane Polarized Light
     XPL = "XPL"                  # Cross Polarized Light (default angle)
-    # RL = "RL"                    # Reflected Light
-    # FL = "FL"                    # Fluorescence
+    RL = "RL"                    # Reflected Light
+    FL = "FL"                    # Fluorescence
     XPL_GAMMA = "XPL_GAMMA"
     OTHER = "OTHER"
 

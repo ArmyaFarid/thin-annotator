@@ -55,6 +55,8 @@ def init_thin_section_fov_images(fov_images_path=None):
             image_path_str = str(file_path)
             fov_metadata = parse_fov_filename(image_name)
 
+            print(fov_metadata)
+
             # Look for the existing record by image_path
             existing_asset = db.session.query(FOVAsset).filter_by(
                 image_path=image_path_str
