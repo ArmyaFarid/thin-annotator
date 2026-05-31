@@ -97,6 +97,7 @@ class PolarizedFilterType(Enum):
     XPL = "XPL"                  # Cross Polarized Light (default angle)
     RL = "RL"                    # Reflected Light
     FL = "FL"                    # Fluorescence
+    TR = "TR"                    # Transmitted light
     XPL_GAMMA = "XPL_GAMMA"
     OTHER = "OTHER"
 

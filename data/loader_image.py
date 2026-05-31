@@ -97,8 +97,31 @@ def init_thin_section_fov_images(fov_images_path=None):
     #     raise FileNotFoundError(
     #         f"No valid images with matching extensions found in directory '{fov_images_path}'."
     #     )
+
+    existing_paths_in_db = {
+        row.image_path
+        for row in db.session.query(FOVAsset.image_path).filter_by(
+            thin_section_id=thin_section_id,
+            fov_id=fov_id,
+        ).all()
+    }
+
+    actual_paths = {
+        str(file_path)
+        for file_path in fov_images_path.iterdir()
+        if file_path.suffix.lower() in extensions
+    }
+
+    stale_paths = existing_paths_in_db - actual_paths
+    if stale_paths:
+        db.session.query(FOVAsset).filter(
+            FOVAsset.image_path.in_(stale_paths)
+        ).delete(synchronize_session=False)
+        print(f"Removed {len(stale_paths)} stale asset(s) from DB.")
+
     if new_assets:
         db.session.add_all(new_assets)
+
     db.session.commit()
     print("Database sync complete.")
     return thin_section_id , fov_id , valid_image_count
