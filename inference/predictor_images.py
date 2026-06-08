@@ -151,7 +151,8 @@ class InferenceImageAPI:
     def __slicOnImage(self, image: np.ndarray, bbox: List[int]) -> list[np.ndarray]:
         x0, y0, w, h = map(int, bbox)
         portion = image[y0:y0 + h, x0:x0 + w]
-        n_segments = max(10, int((w * h) / 400))
+        area = w * h
+        n_segments = int(20 * (area / 1000) ** 0.5)
         segments_slic = slic(portion, n_segments=n_segments, compactness=20, start_label=1)
 
         binary_mask_list = []
