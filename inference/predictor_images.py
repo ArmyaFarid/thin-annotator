@@ -153,7 +153,9 @@ class InferenceImageAPI:
         portion = image[y0:y0 + h, x0:x0 + w]
         area = w * h
         n_segments = int(20 * (area / 1000) ** 0.5)
+        n_segments = max(10, min(n_segments, 300))
         segments_slic = slic(portion, n_segments=n_segments, compactness=20, start_label=1)
+
 
         binary_mask_list = []
         for seg_id in np.unique(segments_slic):
