@@ -6,12 +6,12 @@ from pathlib import Path
 from flask import Blueprint, jsonify, request
 
 from data.annotation_options import get_annotation_options
-from data.project_manager import get_project_data, save_project_data
+from data.project_manager import get_task_snapshot, save_task_snapshot
 from models import FOVAsset
 
-project_blueprint = Blueprint('project', __name__)
+task_blueprint = Blueprint('task', __name__)
 
-@project_blueprint.route("/api/project/save", methods=["POST"])
+@task_blueprint.route("/api/task/save", methods=["POST"])
 def save_project_annotations():
     body = request.get_json()
     if not body:
@@ -37,7 +37,7 @@ def save_project_annotations():
 
         fov_folder = Path(asset.image_path).parent
 
-        save_project_data(fov_folder,pairs_code,sample_id,annotation_data)
+        save_task_snapshot(fov_folder, pairs_code, sample_id, annotation_data)
         return jsonify({"success": True})
 
     except Exception as e:
@@ -45,7 +45,7 @@ def save_project_annotations():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
-@project_blueprint.route("/api/project/load", methods=["GET"])
+@task_blueprint.route("/api/task/load", methods=["GET"])
 def load_project_annotations_endpoint():
     pairs_code = request.args.get("pairsCode")
     sample_id = request.args.get("sampleId")
@@ -64,7 +64,7 @@ def load_project_annotations_endpoint():
 
         fov_folder = Path(asset.image_path).parent
 
-        annotations = get_project_data(fov_folder)
+        annotations = get_task_snapshot(fov_folder)
 
         return jsonify({"annotations": annotations})
 

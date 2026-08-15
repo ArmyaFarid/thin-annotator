@@ -4,8 +4,8 @@ import os
 from pathlib import Path
 
 
-def get_project_data(project_root):
-    project_file = Path(project_root) / "project.json"
+def get_task_snapshot(project_root):
+    project_file = Path(project_root) / "task.json"
     data = None
     if project_file.exists():
         with open(project_file, 'r', encoding='utf-8') as f:
@@ -19,8 +19,8 @@ def get_project_data(project_root):
     return data
 
 
-def save_project_data(project_root,pairs_code,sample_id,annotation_data):
-    project_file = Path(project_root) / "project.json"
+def save_task_snapshot(project_root, pairs_code, sample_id, annotation_data):
+    project_file = Path(project_root) / "task.json"
 
     payload = {
         "data": annotation_data,  # your list stays untouched
