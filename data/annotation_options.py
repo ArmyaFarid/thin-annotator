@@ -27,6 +27,7 @@ DEFAULT_ANNOTATION_OPTIONS = {
         {"value": "carbonates", "label": {"fr": "Carbonates", "en": "Carbonates"}},
         {"value": "oxides", "label": {"fr": "Oxydes", "en": "Oxides"}},
         {"value": "phosphates", "label": {"fr": "Phosphates", "en": "Phosphates"}},
+        {"value": "sulfides", "label": {"fr": "Sulfures", "en": "Sulfides"}},
     ],
     "minerals": [
         #never reassign or reuse an ID, never reorder. If you add a new mineral, it gets id: 23 (or whatever is next).
@@ -53,6 +54,8 @@ DEFAULT_ANNOTATION_OPTIONS = {
         {"id": 20, "value": "ilm", "label": {"fr": "Ilménite", "en": "Ilmenite"}, "group": "oxides"},
         {"id": 21, "value": "hem", "label": {"fr": "Hématite", "en": "Hematite"}, "group": "oxides"},
         {"id": 22, "value": "ap", "label": {"fr": "Apatite", "en": "Apatite"}, "group": "phosphates"},
+        {"id": 23, "value": "py", "label": {"fr": "Pyrite", "en": "Pyrite"}, "group": "sulfides"},
+        {"id": 24, "value": "pcl", "label": {"fr": "Pyrochlore", "en": "Pyrochlore"}, "group": "oxides"},
     ],
     "properties": {
         "relief": [
