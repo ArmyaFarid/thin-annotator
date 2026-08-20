@@ -40,6 +40,7 @@ from threading import Timer
 from extensions import db
 from load_project import pick_folder_and_init_section_fov_images
 from models import FOVAsset
+from preprocessing.pngconverter import to_png_bytes, LossyConversion
 from routes.api.annotation import annotation_blueprint
 from routes.api.task import task_blueprint
 
@@ -103,23 +104,25 @@ def send_gallery_video(path: str) -> Response:
         raise ValueError("resource not found")
 
 
+def send_asset(asset_path):
+    try:
+        buf = to_png_bytes(asset_path)
+    except LossyConversion:
+        abort(415)
+    return send_file(buf, mimetype="image/png", download_name="asset.png")
+
 @app.route("/image/<image_id>", methods=["GET"])
 def serve_fov_image(image_id: str):
-    # 1. Look up the record by its UUID
-    # We use .get() because 'id' is your primary key
     asset = FOVAsset.query.get(image_id)
 
-    # 2. Check if the ID exists in the database
     if not asset:
         return abort(404, description="Image ID not found")
 
-    # 3. Verify the physical file actually exists at that path
     if not os.path.exists(asset.image_path):
         return abort(404, description="Physical image file missing on server")
 
-    # 4. Serve the file directly
     try:
-        return send_file(asset.image_path)
+        return send_asset(asset.image_path)
     except Exception as e:
         return abort(500, description=f"Error accessing file: {str(e)}")
 
