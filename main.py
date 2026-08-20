@@ -41,7 +41,7 @@ from extensions import db
 from load_project import pick_folder_and_init_section_fov_images
 from models import FOVAsset
 from routes.api.annotation import annotation_blueprint
-from routes.api.project import project_blueprint
+from routes.api.task import task_blueprint
 
 
 def open_browser():
@@ -62,7 +62,7 @@ cors = CORS(app, supports_credentials=True)
 inference_api = None
 inference_image_api = None
 
-app.register_blueprint(project_blueprint)
+app.register_blueprint(task_blueprint)
 app.register_blueprint(annotation_blueprint)
 
 @app.route("/")

@@ -49,9 +49,14 @@ def init_thin_section_fov_images(fov_images_path=None):
     valid_image_count = 0
     
     for file_path in fov_images_path.iterdir():
+
         if file_path.suffix.lower() in extensions:
-            valid_image_count += 1
             image_name = file_path.name
+            #prevent macos generated file to be loaded
+            if os.path.basename(image_name).startswith("._"):
+                continue
+            valid_image_count += 1
+
             image_path_str = str(file_path)
             fov_metadata = parse_fov_filename(image_name)
 
