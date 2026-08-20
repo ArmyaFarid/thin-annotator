@@ -124,13 +124,14 @@ class InferenceImageAPI:
                 bboxes = bboxes[0]
 
             if points is not None or bboxes is not None:
-                masks, _, _ = self.predictor.predict(
+                masks, scores, _ = self.predictor.predict(
                     point_coords=points,
                     point_labels=labels,
                     box=bboxes,
-                    multimask_output=False,
+                    multimask_output=True,
                 )
-                masks_binary = masks[0]
+                subpart, part, whole = masks[0], masks[1], masks[2]
+                masks_binary = part
             else:
                 masks_binary = np.zeros(session_data["orig_hw"], dtype=bool)
 
