@@ -10,7 +10,7 @@ from typing import Iterable, List
 from data.data_types import (
     AddPointsImageInput, Image, StartSessionInput, StartSession,
     AddPointsInput, RLEMaskListOnFrame,
-    RLEMaskForObject, RLEMask, ThinSectionImagePairs, SlicImageInput, SaveAnnotationsResult
+    RLEMaskForObject, RLEMask, ThinSectionImagePairs, SlicImageInput, SaveAnnotationsResult, SlicLabelMap, BBox
 )
 from app_conf import DATA_PATH, THIN_SECTION_FOV_SAMPLE_PATH
 from extensions import db
@@ -18,6 +18,7 @@ from inference.data_types import AddPointsImageRequest, StartSessionRequest, Sli
 from strawberry import relay
 from data.store import get_images
 from models import FOVAsset
+import numpy as np
 
 
 @strawberry.type
@@ -146,6 +147,34 @@ class ImageMutation:
                 )
                 for r in response.results
             ],
+        )
+
+    @strawberry.mutation
+    def compute_slic_image_get_label_map(self, input: SlicImageInput, info: strawberry.Info) -> SlicLabelMap:
+        api = info.context["inference_image_api"]
+
+        # Image Way: Frame index is always 0
+        request = SlicImageRequest(
+            type="add_points",
+            # session_id=input.session_id,
+            image_path=input.image_path,
+            image_id=input.image_id.node_id,
+            bbox=input.bbox,
+        )
+
+        # Call image predictor
+        response = api.compute_slic_image_label_map(request)
+
+        arr, (x0, y0, w, h) = response.data
+
+        arr = np.ascontiguousarray(arr, dtype=np.uint16)
+
+        return SlicLabelMap(
+            data=base64.b64encode(arr.tobytes()).decode("ascii"),
+            height=arr.shape[0],
+            width=arr.shape[1],
+            dtype=str(arr.dtype),
+            bbox=BBox(x=x0, y=y0, w=w, h=h),
         )
 
 

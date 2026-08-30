@@ -7,8 +7,9 @@
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Iterable, List, Optional
+from typing import Iterable, List, Optional, Tuple
 
+import numpy as np
 import strawberry
 from strawberry.scalars import JSON
 
@@ -218,7 +219,23 @@ class RLEMaskListOnFrame:
     rle_mask_list: List[RLEMaskForObject]
 
 
+@strawberry.type
+class BBox:
+    x: int
+    y: int
+    w: int
+    h: int
 
+
+@strawberry.type
+class SlicLabelMap:
+    """SLIC label map for a bbox crop, plus the crop's origin in image space."""
+
+    data: str        # base64 of the raw uint16 buffer, C-order, row-major
+    height: int      # rows
+    width: int       # cols
+    dtype: str       # "uint16"
+    bbox: BBox       # (x0, y0, w, h) the map was computed from
 
 
 @strawberry.input
