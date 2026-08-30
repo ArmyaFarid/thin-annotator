@@ -7,7 +7,7 @@ import logging
 import os
 from pathlib import Path
 from threading import Lock
-from typing import Any, List
+from typing import Any, List, Tuple
 from PIL import Image
 
 import numpy as np
@@ -20,7 +20,7 @@ from inference.data_types import (
     Mask,
     PropagateDataResponse,
     PropagateDataValue,
-    SlicImageRequest,
+    SlicImageRequest, PropagateLabelMapDataResponse,
 )
 from pycocotools.mask import encode as encode_masks
 from sam2.build_sam import build_sam2
@@ -149,6 +149,17 @@ class InferenceImageAPI:
             rle_list = self.__get_rle_mask_list(list(range(len(masks))), masks)
             return PropagateDataResponse(frame_index=0, results=rle_list)
 
+
+    def compute_slic_image_label_map(self, request: SlicImageRequest) -> PropagateLabelMapDataResponse:
+        # Similar logic: query by ID, open path, run SLIC
+        with self.autocast_context(), self.inference_lock:
+            asset = FOVAsset.query.get(request.image_id)
+            if not asset: raise ValueError("Asset not found")
+
+            image = Image.open(asset.image_path)
+            label_map = self.__slicOnImage_label_map(np.array(image.convert("RGB")), request.bbox)
+            return PropagateLabelMapDataResponse(data=label_map)
+
     def __slicOnImage(self, image: np.ndarray, bbox: List[int]) -> list[np.ndarray]:
         x0, y0, w, h = map(int, bbox)
         portion = image[y0:y0 + h, x0:x0 + w]
@@ -164,6 +175,15 @@ class InferenceImageAPI:
             full_mask[y0:y0 + h, x0:x0 + w] = (segments_slic == seg_id)
             binary_mask_list.append(full_mask)
         return binary_mask_list
+
+    def __slicOnImage_label_map(self, image: np.ndarray, bbox: List[int]) -> Tuple[np.ndarray, Tuple[int, int, int, int]]:
+        x0, y0, w, h = map(int, bbox)
+        portion = image[y0:y0 + h, x0:x0 + w]
+        area = w * h
+        n_segments = int(20 * (area / 1000) ** 0.5)
+        n_segments = max(10, min(n_segments, 300))
+        segments_slic = slic(portion, n_segments=n_segments, compactness=20, start_label=1)
+        return segments_slic.astype(np.uint16), (x0, y0, w, h)
 
     def __get_rle_mask_list(self, object_ids: List[int], masks: List[np.ndarray]) -> List[PropagateDataValue]:
         return [self.__get_mask_for_object(oid, m) for oid, m in zip(object_ids, masks)]

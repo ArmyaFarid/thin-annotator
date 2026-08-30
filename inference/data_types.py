@@ -6,8 +6,9 @@
 # Modifications Copyright (c) 2025 Armya BAKOUAN -- see NOTICE for details.
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union, Tuple
 
+import numpy as np
 from dataclasses_json import dataclass_json
 from torch import Tensor
 
@@ -192,6 +193,11 @@ class PropagateDataValue:
 class PropagateDataResponse:
     frame_index: int
     results: List[PropagateDataValue]
+
+@dataclass_json
+@dataclass
+class PropagateLabelMapDataResponse:
+    data: Tuple[np.ndarray, Tuple[int, int, int, int]]
 
 
 @dataclass_json
