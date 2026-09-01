@@ -5,6 +5,7 @@ from pathlib import Path
 
 from flask import Blueprint, jsonify, request
 
+from core.annotator import current_annotator
 from data.annotation_options import get_annotation_options
 from data.project_manager import get_task_snapshot, save_task_snapshot
 from models import FOVAsset
@@ -20,6 +21,9 @@ def save_project_annotations():
     pairs_code = body.get("pairsCode")
     sample_id = body.get("sampleId")
     annotation_data = body.get("data")
+
+    if current_annotator:
+        print("load by %s", current_annotator.username)
 
 
 
@@ -37,7 +41,7 @@ def save_project_annotations():
 
         fov_folder = Path(asset.image_path).parent
 
-        save_task_snapshot(fov_folder, pairs_code, sample_id, annotation_data)
+        save_task_snapshot(fov_folder, pairs_code, sample_id, annotation_data, current_annotator)
         return jsonify({"success": True})
 
     except Exception as e:
@@ -64,7 +68,7 @@ def load_project_annotations_endpoint():
 
         fov_folder = Path(asset.image_path).parent
 
-        annotations = get_task_snapshot(fov_folder)
+        annotations = get_task_snapshot(fov_folder,current_annotator)
 
         return jsonify({"annotations": annotations})
 

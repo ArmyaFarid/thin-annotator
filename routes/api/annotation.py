@@ -1,10 +1,12 @@
 import base64
 import json
 import os
+from dataclasses import asdict
 from pathlib import Path
 
 from flask import Blueprint, jsonify, request
 
+from core.annotator import current_annotator
 from data.annotation_options import get_annotation_options
 from models import FOVAsset
 
@@ -22,21 +24,13 @@ def save_annotations():
     image_id = body.get("imageId")
     annotation_data = body.get("data")
 
-    print(image_id)
-
     if not all([pairs_code, sample_id, annotation_data]):
         return jsonify({"success": False, "error": "Missing required fields"}), 400
 
     try:
         decoded = base64.b64decode(image_id).decode("utf-8")
 
-        print(decoded)
-        # Image:16fd1c9c-ba45-41f8-9e2f-18d70c4d6c73
-
         entity_type, real_id = decoded.split(":", 1)
-
-        print(entity_type)  # Image
-        print(real_id)
 
         asset = FOVAsset.query.filter_by(
             id=real_id,
@@ -49,7 +43,12 @@ def save_annotations():
 
 
         img_base_path, ext = os.path.splitext(asset.image_path)
-        file_path = f"{img_base_path}-annotations.json"
+        file_path = f"{img_base_path}-annotations-.json"
+        if current_annotator:
+            file_path = f"{img_base_path}-annotations-{current_annotator.username}.json"
+
+        profile = current_annotator._get_current_object() if current_annotator else None
+        annotation_data["annotator_profile"] = asdict(profile) if profile else None
 
         with open(file_path, 'w', encoding='utf-8') as f:
             json.dump(annotation_data, f, indent=4)

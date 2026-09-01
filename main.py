@@ -21,6 +21,7 @@ from app_conf import (
     UPLOADS_PREFIX,
     get_resource_path, get_writable_dir,
 )
+from core.annotator import load_annotator
 from data.annotation_options import get_annotation_options
 from data.schema import schema
 from data.store import set_images
@@ -63,6 +64,7 @@ cors = CORS(app, supports_credentials=True)
 inference_api = None
 inference_image_api = None
 
+app.before_request(load_annotator)
 app.register_blueprint(task_blueprint)
 app.register_blueprint(annotation_blueprint)
 

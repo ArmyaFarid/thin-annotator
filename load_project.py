@@ -49,5 +49,5 @@ def pick_folder_sub() -> str | None:
 def pick_folder_and_init_section_fov_images():
     path = pick_folder_sub()
     thin_section_id , fov_id , image_count = init_thin_section_fov_images(path)
-    annotations = get_task_snapshot(path)
+    annotations = get_task_snapshot(path,None)
     return {"pairsCode": thin_section_id,"image_count":image_count, "sampleId": fov_id, "annotations": annotations}
