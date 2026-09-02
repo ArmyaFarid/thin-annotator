@@ -1,13 +1,9 @@
-import json
-import os
-from datetime import datetime
 from pathlib import Path
 
 from flask import Blueprint, jsonify, request
 
 from core.annotator import current_annotator
-from data.annotation_options import get_annotation_options
-from data.project_manager import get_task_snapshot, save_task_snapshot
+from core.task_manager import get_task_snapshot, save_task_snapshot
 from models import FOVAsset
 
 task_blueprint = Blueprint('task', __name__)

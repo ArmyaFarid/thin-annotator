@@ -6,7 +6,6 @@ from pathlib import Path
 
 from schema.annotator import AnnotatorProfile
 
-
 def resolve_task_file(project_root, annotator: AnnotatorProfile | None) -> Path:
     project_root = Path(project_root)
     base_file = project_root / "task.json"
@@ -24,7 +23,6 @@ def resolve_task_file(project_root, annotator: AnnotatorProfile | None) -> Path:
         shutil.copy2(base_file, user_file)
     return user_file
 
-
 def get_task_snapshot(project_root, annotator: AnnotatorProfile | None):
     project_file = resolve_task_file(project_root, annotator)
 
@@ -40,7 +38,6 @@ def get_task_snapshot(project_root, annotator: AnnotatorProfile | None):
         return saved.get("data")
 
     raise ValueError(f"unexpected task.json structure: {type(saved).__name__}")
-
 
 def save_task_snapshot(project_root, pairs_code, sample_id, annotation_data, annotator : AnnotatorProfile):
     project_root = Path(project_root)
@@ -65,3 +62,5 @@ def save_task_snapshot(project_root, pairs_code, sample_id, annotation_data, ann
         json.dump(payload, f, indent=4)
     os.replace(tmp_path, project_file)  # atomic rename
     print(f"Annotations saved successfully for {pairs_code}/{sample_id} at {project_file}")
+
+

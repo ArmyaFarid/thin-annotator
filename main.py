@@ -7,10 +7,8 @@
 
 import logging
 import os
-from pathlib import Path
 import signal
-import sys
-from typing import Any, Generator
+from typing import Any
 
 from app_conf import (
     GALLERY_PATH,
@@ -24,22 +22,16 @@ from app_conf import (
 from core.annotator import load_annotator
 from data.annotation_options import get_annotation_options
 from data.schema import schema
-from data.store import set_images
-import json
-from flask import Flask, make_response, Request, request, Response, send_from_directory, abort, send_file, jsonify
+from flask import Flask, make_response, Request, Response, send_from_directory, abort, send_file, jsonify
 from flask_cors import CORS
-from inference.data_types import PropagateDataResponse, PropagateInVideoRequest
-from inference.multipart import MultipartResponseBuilder
 from strawberry.flask.views import GraphQLView
 
-from data.loader_image import preload_data_img, init_thin_section_fov_images
 from inference.predictor_images import InferenceImageAPI
 
 import webbrowser
-from threading import Timer
 
 from extensions import db
-from load_project import pick_folder_and_init_section_fov_images
+from core.load_project import pick_folder_and_init_section_fov_images
 from models import FOVAsset
 from preprocessing.pngconverter import to_png_bytes, LossyConversion
 from routes.api.annotation import annotation_blueprint

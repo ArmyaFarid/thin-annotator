@@ -1,19 +1,5 @@
-# Copyright (c) 2025 Armya BAKOUAN.
-# Licensed under the Apache License, Version 2.0.
-# See the LICENSE file in the root directory of this source tree.
-
-import json
-import tkinter as tk
-from pathlib import Path
-from tkinter import filedialog
-
-from data.loader_image import init_thin_section_fov_images
-
 import subprocess
 import sys
-
-from data.project_manager import get_task_snapshot
-
 
 def pick_folder_sub() -> str | None:
     if sys.platform == "darwin":
@@ -45,9 +31,3 @@ def pick_folder_sub() -> str | None:
             except FileNotFoundError:
                 continue
         return None
-
-def pick_folder_and_init_section_fov_images():
-    path = pick_folder_sub()
-    thin_section_id , fov_id , image_count = init_thin_section_fov_images(path)
-    annotations = get_task_snapshot(path,None)
-    return {"pairsCode": thin_section_id,"image_count":image_count, "sampleId": fov_id, "annotations": annotations}
