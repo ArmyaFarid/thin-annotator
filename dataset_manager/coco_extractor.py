@@ -79,21 +79,36 @@ def compute_bbox_area(rle, height, width):
 
 
 def find_annotation_files(root_dir):
-    """Recursively find all -annotations.json files."""
+    """Recursively find all .thinannotation files."""
     root = Path(root_dir)
-    return sorted(root.rglob("*-annotations.json"))
+    return sorted(root.rglob("*.thinannotation"))
 
 
-def resolve_image_path(json_path, json_data):
-    """Resolve the image file path from JSON data or fallback to filename convention."""
-    parent = json_path.parent
-    if "image" in json_data and "file_name" in json_data["image"]:
-        candidate = parent / json_data["image"]["file_name"]
+def resolve_image_path(annotation_path, annotation_data):
+    """Resolve the image path from annotation data or the annotation filename."""
+    parent = annotation_path.parent
+
+    if "image" in annotation_data and "file_name" in annotation_data["image"]:
+        candidate = parent / annotation_data["image"]["file_name"]
         if candidate.exists():
             return candidate
-        return candidate
-    base = json_path.name.replace("-annotations.json", "")
+
+    base = annotation_path.stem
+    if "_annotator-" in base:
+        base = base.split("_annotator-", 1)[0]
+
+    matches = sorted(
+        path
+        for path in parent.glob(f"{base}.*")
+        if path.suffix.lower() in {".bmp", ".png", ".jpg", ".jpeg", ".tif", ".tiff"}
+    )
+
+    if matches:
+        return matches[0]
+
     return parent / f"{base}.bmp"
+
+
 
 
 def build_dataset(root_dir, output_dir, zip_output=False, progress_callback=None):
