@@ -90,6 +90,7 @@ def resolve_acquired_images_from_db(thin_section_id: str , fov_id: str):
                     gamma=int(row.gamma),
                     acquisition_label=row.stage_angle,
                     image=image,
+                    rotation=row.stage_angle,
                 )
             )
         except KeyError as e:

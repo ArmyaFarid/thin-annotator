@@ -111,6 +111,7 @@ class AcquiredImage:
     """
     polarized_filter_type: PolarizedFilterType
     gamma : Optional[int]
+    rotation : Optional[int]
     acquisition_label: Optional[str]
     image: Image
 
@@ -135,6 +136,8 @@ class ThinSectionImagePairs(relay.Node):
 
     _gammas : Optional[List[int]] = None
 
+    _rotations : Optional[List[int]] = None
+
 
     @strawberry.field
     def acquired_images(self) -> List[AcquiredImage]:
@@ -148,6 +151,7 @@ class ThinSectionImagePairs(relay.Node):
             # compute types at the same time
             self._polarized_filter_types = [resolved_acquired_image.polarized_filter_type for resolved_acquired_image in self._acquired_cache]
             self._gammas = [resolved_acquired_image.gamma for resolved_acquired_image in self._acquired_cache]
+            self._rotations = [resolved_acquired_image.rotation for resolved_acquired_image in self._acquired_cache]
         return self._acquired_cache
 
     @strawberry.field
@@ -179,6 +183,12 @@ class ThinSectionImagePairs(relay.Node):
         if self._gammas is None:
             _ = self.acquired_images()
         return unique_preserve_order(self._gammas)
+
+    @strawberry.field
+    def rotations(self) -> List[Optional[int]]:
+        if self._rotations is None:
+            _ = self.acquired_images()
+        return unique_preserve_order(self._rotations)
 
     @classmethod
     def resolve_nodes(
