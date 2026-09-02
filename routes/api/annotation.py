@@ -43,9 +43,9 @@ def save_annotations():
 
 
         img_base_path, ext = os.path.splitext(asset.image_path)
-        file_path = f"{img_base_path}-annotations-.json"
+        file_path = f"{img_base_path}.thinannotation"
         if current_annotator:
-            file_path = f"{img_base_path}-annotations-{current_annotator.username}.json"
+            file_path = f"{img_base_path}_annotator-{current_annotator.username}.thinannotation"
 
         profile = current_annotator._get_current_object() if current_annotator else None
         annotation_data["annotator_profile"] = asdict(profile) if profile else None
