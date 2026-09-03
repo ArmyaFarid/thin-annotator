@@ -31,10 +31,10 @@ from inference.predictor_images import InferenceImageAPI
 import webbrowser
 
 from extensions import db
-from core.load_project import pick_folder_and_init_section_fov_images
 from models import FOVAsset
 from preprocessing.pngconverter import to_png_bytes, LossyConversion
 from routes.api.annotation import annotation_blueprint
+from routes.api.batch import batch_blueprint
 from routes.api.task import task_blueprint
 
 
@@ -59,6 +59,7 @@ inference_image_api = None
 app.before_request(load_annotator)
 app.register_blueprint(task_blueprint)
 app.register_blueprint(annotation_blueprint)
+app.register_blueprint(batch_blueprint)
 
 @app.route("/")
 def serve_index():
@@ -140,12 +141,6 @@ def send_uploaded_video(path: str):
         )
     except:
         raise ValueError("resource not found")
-
-
-@app.post("/api/pick-folder")
-def pick_folder_post():
-    return pick_folder_and_init_section_fov_images()
-
 
 @app.route("/api/annotation-options", methods=["GET"])
 def annotation_options():
