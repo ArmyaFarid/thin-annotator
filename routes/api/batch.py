@@ -4,9 +4,10 @@ from flask import Blueprint, jsonify, request
 
 from core.annotator import current_annotator
 from core.batch import init_batch, shuffle_batch
-from core.task_manager import get_task_snapshot, save_task_snapshot, load_task_folder_from_folder
+from core.task_manager import get_task_snapshot, save_task_snapshot, load_task_from_folder
 from extensions import db
 from models import FOVAsset, Batch, Task
+from schema.annotator import AnnotatorProfile
 from schema.batch import BatchSummarySchema, batches_schema
 from system.pickers import pick_folder_sub
 
@@ -14,8 +15,8 @@ from flask import request, jsonify
 from sqlalchemy import func
 
 
-def _payload(task, batch):
-    data = load_task_folder_from_folder(task.images_folder)
+def _payload(task, batch, annotator : AnnotatorProfile):
+    data = load_task_from_folder(task.images_folder, annotator)
     has_prev = db.session.query(
         Task.query.filter(Task.batch_id == batch.id, Task.order < task.order).exists()
     ).scalar()
@@ -94,7 +95,7 @@ def current_task():
         _set_current(batch_id, task)
         db.session.commit()
 
-    return jsonify(_payload(task, batch))
+    return jsonify(_payload(task, batch,current_annotator))
 
 @batch_blueprint.route("/api/batch/next", methods=["POST"])
 def next_task():
@@ -120,7 +121,7 @@ def next_task():
 
     _set_current(batch_id, target)
     db.session.commit()
-    return jsonify(_payload(target, batch))
+    return jsonify(_payload(target, batch,current_annotator))
 
 
 @batch_blueprint.route("/api/batch/prev", methods=["POST"])
@@ -136,8 +137,8 @@ def prev_task():
               .order_by(Task.order.desc())
               .first())
     if target is None:
-        return jsonify(_payload(current, batch))    # already at the start
+        return jsonify(_payload(current, batch,current_annotator))    # already at the start
 
     _set_current(batch_id, target)
     db.session.commit()
-    return jsonify(_payload(target, batch))
+    return jsonify(_payload(target, batch,current_annotator))
