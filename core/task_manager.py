@@ -4,6 +4,7 @@ import json
 import os
 from pathlib import Path
 
+from data.loader_image import init_thin_section_fov_images
 from schema.annotator import AnnotatorProfile
 
 def resolve_task_file(project_root, annotator: AnnotatorProfile | None) -> Path:
@@ -63,4 +64,7 @@ def save_task_snapshot(project_root, pairs_code, sample_id, annotation_data, ann
     os.replace(tmp_path, project_file)  # atomic rename
     print(f"Annotations saved successfully for {pairs_code}/{sample_id} at {project_file}")
 
-
+def load_task_folder_from_folder(path):
+    thin_section_id , fov_id , image_count = init_thin_section_fov_images(path)
+    annotations = get_task_snapshot(path,None)
+    return {"pairsCode": thin_section_id,"image_count":image_count, "sampleId": fov_id, "annotations": annotations}
