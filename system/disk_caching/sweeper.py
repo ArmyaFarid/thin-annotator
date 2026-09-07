@@ -6,7 +6,6 @@ from system.disk_caching.host_caching import CACHE_DIR, TTL_SECONDS, MAX_BYTES, 
 def sweep():
     now = time.time()
     entries = []
-    print(CACHE_DIR)
     for root, _, files in os.walk(CACHE_DIR):
         for name in files:
             p = os.path.join(root, name)

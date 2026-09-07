@@ -18,7 +18,7 @@ from app_conf import (
     POSTERS_PREFIX,
     UPLOADS_PATH,
     UPLOADS_PREFIX,
-    get_resource_path, get_writable_dir,
+    get_flask_stattic_resource_path, get_writable_dir,
 )
 from core.annotator import load_annotator
 from data.annotation_options import get_annotation_options
@@ -49,7 +49,7 @@ def open_browser():
 
 logger = logging.getLogger(__name__)
 
-app = Flask(__name__,static_folder=get_resource_path("frontend_payload"))
+app = Flask(__name__, static_folder=get_flask_stattic_resource_path("frontend_payload"))
 
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + str(get_writable_dir() / 'thinAnnotator.db')
