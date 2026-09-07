@@ -235,7 +235,6 @@ def start_backend_logic(debug: bool = False , use_reloader: bool = False):
 
     # Run sweeper
     os.makedirs(CACHE_DIR, exist_ok=True)
-    # sweep()
     start_sweeper()
 
     # Run the app (this will block the process)
