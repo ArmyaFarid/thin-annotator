@@ -8,6 +8,7 @@
 import logging
 import os
 import signal
+import time
 from typing import Any
 
 from app_conf import (
@@ -22,7 +23,7 @@ from app_conf import (
 from core.annotator import load_annotator
 from data.annotation_options import get_annotation_options
 from data.schema import schema
-from flask import Flask, make_response, Request, Response, send_from_directory, abort, send_file, jsonify
+from flask import Flask, make_response, Request, Response, send_from_directory, abort, send_file, jsonify, request
 from flask_cors import CORS
 from strawberry.flask.views import GraphQLView
 
@@ -99,15 +100,17 @@ def send_gallery_video(path: str) -> Response:
         raise ValueError("resource not found")
 
 
-def send_asset(asset_path):
+def convert_and_send_image_asset(asset_path):
     try:
+        t = time.perf_counter()
         buf = to_png_bytes(asset_path)
+        print((time.perf_counter() - t) * 1000, "ms",flush=True)
     except LossyConversion:
         abort(415)
     return send_file(buf, mimetype="image/png", download_name="asset.png")
 
-@app.route("/image/<image_id>", methods=["GET"])
-def serve_fov_image(image_id: str):
+@app.route("/image_non_cached/<image_id>", methods=["GET"])
+def serve_fov_image_(image_id: str):
     asset = FOVAsset.query.get(image_id)
 
     if not asset:
@@ -117,9 +120,48 @@ def serve_fov_image(image_id: str):
         return abort(404, description="Physical image file missing on server")
 
     try:
-        return send_asset(asset.image_path)
+        return convert_and_send_image_asset(asset.image_path)
     except Exception as e:
         return abort(500, description=f"Error accessing file: {str(e)}")
+
+
+@app.route("/image/<image_id>", methods=["GET"])
+def serve_fov_image(image_id: str):
+    asset = db.session.get(FOVAsset, image_id)
+    if not asset:
+        abort(404, description="Image ID not found")
+
+    try:
+        st = os.stat(asset.image_path)
+    except OSError:
+        abort(404, description="Physical image file missing on server")
+
+    tag = f'"{image_id}-{st.st_mtime_ns:x}-{st.st_size:x}"'
+
+    if request.if_none_match.contains(tag.strip('"')):
+        resp = make_response("", 304)
+        resp.set_etag(tag.strip('"'))
+        resp.cache_control.no_cache = True
+        return resp
+
+    try:
+        buf = to_png_bytes(asset.image_path)
+    except LossyConversion:
+        abort(415)
+    except Exception as e:
+        abort(500, description=f"Error accessing file: {str(e)}")
+
+    resp = send_file(
+        buf,
+        mimetype="image/png",
+        download_name="asset.png",
+        last_modified=st.st_mtime,
+        conditional=True,
+    )
+    resp.set_etag(tag.strip('"'))
+    resp.cache_control.private = True
+    resp.cache_control.max_age = 1800
+    return resp
 
 @app.route(f"/{POSTERS_PREFIX}/<path:path>", methods=["GET"])
 def send_poster_image(path: str) -> Response:
