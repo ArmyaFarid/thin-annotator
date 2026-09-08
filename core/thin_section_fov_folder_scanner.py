@@ -34,8 +34,8 @@ IMAGE_EXTENSIONS: frozenset[str] = frozenset({
 #: underscore is reserved as the token separator.
 STEM_PATTERN: re.Pattern[str] = re.compile(
     r"^T_(?P<index>\d+)"
-    r"_proj-(?P<proj>[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*)"
-    r"_tsn-(?P<tsn>[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*)"
+    # r"_proj-(?P<proj>[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*)"
+    # r"_tsn-(?P<tsn>[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*)"
     r"_mod-(?P<mod>[A-Za-z0-9]+)"
     r"_rot-(?P<rot>-?\d+)"
     r"_comp-(?P<comp>[A-Za-z0-9]+)$"
