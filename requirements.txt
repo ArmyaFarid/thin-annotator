@@ -11,3 +11,4 @@ torch==2.11.0
 tqdm==4.67.3
 flask-sqlalchemy
 scikit-image==0.25.2
+waitress==3.0.2

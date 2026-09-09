@@ -7,10 +7,9 @@
 
 import logging
 import os
-from pathlib import Path
 import signal
-import sys
-from typing import Any, Generator
+import time
+from typing import Any
 
 from app_conf import (
     GALLERY_PATH,
@@ -19,31 +18,27 @@ from app_conf import (
     POSTERS_PREFIX,
     UPLOADS_PATH,
     UPLOADS_PREFIX,
-    get_resource_path, get_writable_dir,
+    get_flask_stattic_resource_path, get_writable_dir,
 )
 from core.annotator import load_annotator
 from data.annotation_options import get_annotation_options
 from data.schema import schema
-from data.store import set_images
-import json
-from flask import Flask, make_response, Request, request, Response, send_from_directory, abort, send_file, jsonify
+from flask import Flask, make_response, Request, Response, send_from_directory, abort, send_file, jsonify, request
 from flask_cors import CORS
-from inference.data_types import PropagateDataResponse, PropagateInVideoRequest
-from inference.multipart import MultipartResponseBuilder
 from strawberry.flask.views import GraphQLView
 
-from data.loader_image import preload_data_img, init_thin_section_fov_images
 from inference.predictor_images import InferenceImageAPI
 
 import webbrowser
-from threading import Timer
 
 from extensions import db
-from load_project import pick_folder_and_init_section_fov_images
 from models import FOVAsset
-from preprocessing.pngconverter import to_png_bytes, LossyConversion
+from preprocessing.pngconverter import to_png_bytes, LossyConversion, cached_png_path
 from routes.api.annotation import annotation_blueprint
+from routes.api.batch import batch_blueprint
 from routes.api.task import task_blueprint
+from system.disk_caching.host_caching import CACHE_DIR
+from system.disk_caching.sweeper import start_sweeper, sweep
 
 
 def open_browser():
@@ -54,7 +49,7 @@ def open_browser():
 
 logger = logging.getLogger(__name__)
 
-app = Flask(__name__,static_folder=get_resource_path("frontend_payload"))
+app = Flask(__name__, static_folder=get_flask_stattic_resource_path("frontend_payload"))
 
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + str(get_writable_dir() / 'thinAnnotator.db')
@@ -67,6 +62,7 @@ inference_image_api = None
 app.before_request(load_annotator)
 app.register_blueprint(task_blueprint)
 app.register_blueprint(annotation_blueprint)
+app.register_blueprint(batch_blueprint)
 
 @app.route("/")
 def serve_index():
@@ -106,15 +102,17 @@ def send_gallery_video(path: str) -> Response:
         raise ValueError("resource not found")
 
 
-def send_asset(asset_path):
+def convert_and_send_image_asset(asset_path):
     try:
+        t = time.perf_counter()
         buf = to_png_bytes(asset_path)
+        print((time.perf_counter() - t) * 1000, "ms",flush=True)
     except LossyConversion:
         abort(415)
     return send_file(buf, mimetype="image/png", download_name="asset.png")
 
-@app.route("/image/<image_id>", methods=["GET"])
-def serve_fov_image(image_id: str):
+@app.route("/image_non_cached/<image_id>", methods=["GET"])
+def serve_fov_image_(image_id: str):
     asset = FOVAsset.query.get(image_id)
 
     if not asset:
@@ -124,9 +122,49 @@ def serve_fov_image(image_id: str):
         return abort(404, description="Physical image file missing on server")
 
     try:
-        return send_asset(asset.image_path)
+        return convert_and_send_image_asset(asset.image_path)
     except Exception as e:
         return abort(500, description=f"Error accessing file: {str(e)}")
+
+
+@app.route("/image/<image_id>", methods=["GET"])
+def serve_fov_image(image_id: str):
+    asset = db.session.get(FOVAsset, image_id)
+    if not asset:
+        abort(404, description="Image ID not found")
+
+    try:
+        st = os.stat(asset.image_path)
+    except OSError:
+        abort(404, description="Physical image file missing on server")
+
+    tag = f"{image_id}-{st.st_mtime_ns:x}-{st.st_size:x}"
+
+    if request.if_none_match.contains(tag):
+        resp = make_response("", 304)
+        resp.set_etag(tag.strip('"'))
+        resp.cache_control.private = True
+        resp.cache_control.max_age = 1800
+        return resp
+
+    try:
+        png = cached_png_path(asset.image_path, st.st_mtime_ns, st.st_size)
+    except LossyConversion:
+        abort(415)
+    except Exception as e:
+        abort(500, description=f"Error accessing file: {str(e)}")
+
+    resp = send_file(
+        png,
+        mimetype="image/png",
+        download_name="asset.png",
+        last_modified=st.st_mtime,
+        etag=tag,
+        conditional=True,
+    )
+    resp.cache_control.private = True
+    resp.cache_control.max_age = 1800
+    return resp
 
 @app.route(f"/{POSTERS_PREFIX}/<path:path>", methods=["GET"])
 def send_poster_image(path: str) -> Response:
@@ -148,12 +186,6 @@ def send_uploaded_video(path: str):
         )
     except:
         raise ValueError("resource not found")
-
-
-@app.post("/api/pick-folder")
-def pick_folder_post():
-    return pick_folder_and_init_section_fov_images()
-
 
 @app.route("/api/annotation-options", methods=["GET"])
 def annotation_options():
@@ -201,5 +233,13 @@ def start_backend_logic(debug: bool = False , use_reloader: bool = False):
         db.create_all()
         # init_thin_section_fov_images()
 
+    # Run sweeper
+    os.makedirs(CACHE_DIR, exist_ok=True)
+    start_sweeper()
+
     # Run the app (this will block the process)
-    app.run(host="0.0.0.0", port=7263, debug=debug, use_reloader=use_reloader)
+    if debug:
+        app.run(host="127.0.0.1", port=7263, debug=True, use_reloader=use_reloader)
+    else:
+        from waitress import serve
+        serve(app, host="127.0.0.1", port=7263, threads=8)

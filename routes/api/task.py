@@ -1,14 +1,11 @@
-import json
-import os
-from datetime import datetime
 from pathlib import Path
 
 from flask import Blueprint, jsonify, request
 
 from core.annotator import current_annotator
-from data.annotation_options import get_annotation_options
-from data.project_manager import get_task_snapshot, save_task_snapshot
+from core.task_manager import get_task_snapshot, save_task_snapshot, load_task_from_folder
 from models import FOVAsset
+from system.pickers import pick_folder_sub
 
 task_blueprint = Blueprint('task', __name__)
 
@@ -75,3 +72,10 @@ def load_project_annotations_endpoint():
     except Exception as e:
         print(f"Error loading annotations: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
+
+
+@task_blueprint.route("/api/task/open-from-folder", methods=["POST"])
+def open_task_from_folder():
+    path = pick_folder_sub()
+    data = load_task_from_folder(path, current_annotator)
+    return jsonify(data)

@@ -10,9 +10,11 @@ import os
 from pathlib import Path
 import sys
 
+from system import filesystem
+
 logger = logging.getLogger(__name__)
 
-def get_resource_path(relative_path):
+def get_flask_stattic_resource_path(relative_path):
     if hasattr(sys, '_MEIPASS'):
         return Path(sys._MEIPASS) / relative_path
     return Path(".") / relative_path
@@ -21,11 +23,10 @@ def get_writable_dir():
     # Option A: A hidden folder in the User's Home (Professional way)
     # macOS: /Users/name/.geosam
     # Windows: C:\Users\name\.geosam
-    path = Path.home() / ".thinAnnotatorData"
-    path.mkdir(parents=True, exist_ok=True)
-    return path
 
-APP_ROOT = os.getenv("APP_ROOT", get_resource_path(""))
+    return filesystem.get_writable_dir()
+
+APP_ROOT = os.getenv("APP_ROOT", get_flask_stattic_resource_path(""))
 
 API_URL = os.getenv("API_URL", "http://localhost:7263")
 
