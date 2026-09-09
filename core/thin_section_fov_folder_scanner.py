@@ -29,16 +29,18 @@ IMAGE_EXTENSIONS: frozenset[str] = frozenset({
     ".bmp", ".webp", ".exr", ".tga", ".dpx",
 })
 
-#: Filename stem pattern (extension excluded).
-#: Token values may contain letters, digits and internal hyphens; the
-#: underscore is reserved as the token separator.
+#: One `_key-value` token. Values may contain internal hyphens;
+#: `_` stays reserved as the token separator.
+_TOKEN = r"(?:_[A-Za-z]+-[A-Za-z0-9-]+)"
+
 STEM_PATTERN: re.Pattern[str] = re.compile(
-    r"^T_(?P<index>\d+)"
-    # r"_proj-(?P<proj>[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*)"
+    r"^(?P<prefix>.+?)"
+    rf"(?={_TOKEN}+$)"                            # everything after prefix is tokens
+    # r"_proj-(?P<proj>[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*)"    
     # r"_tsn-(?P<tsn>[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*)"
-    r"_mod-(?P<mod>[A-Za-z0-9]+)"
-    r"_rot-(?P<rot>-?\d+)"
-    r"_comp-(?P<comp>[A-Za-z0-9]+)$"
+    r"(?=.*?_mod-(?P<mod>[A-Za-z0-9]+)(?:_|$))"
+    r"(?=.*?_rot-(?P<rot>-?\d+)(?:_|$))"
+    r"(?=.*?_comp-(?P<comp>[A-Za-z0-9]+)(?:_|$))"
 )
 
 
