@@ -29,6 +29,7 @@ def _payload(task, batch, annotator : AnnotatorProfile):
         "sampleId": data["sampleId"],
         "imageCount": data["image_count"],
         "annotations": data["annotations"],
+        "taskTiming": data["taskTiming"],
         "index": task.order,
         "total": batch.task_count,
         "isAnnotated": task.is_annotated,

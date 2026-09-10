@@ -18,6 +18,7 @@ def save_project_annotations():
     pairs_code = body.get("pairsCode")
     sample_id = body.get("sampleId")
     annotation_data = body.get("data")
+    task_timing = body.get("taskTiming")
 
     if current_annotator:
         print("load by %s", current_annotator.username)
@@ -38,7 +39,7 @@ def save_project_annotations():
 
         fov_folder = Path(asset.image_path).parent
 
-        save_task_snapshot(fov_folder, pairs_code, sample_id, annotation_data, current_annotator)
+        save_task_snapshot(fov_folder, pairs_code, sample_id, annotation_data,task_timing, current_annotator)
         return jsonify({"success": True})
 
     except Exception as e:
@@ -65,9 +66,9 @@ def load_project_annotations_endpoint():
 
         fov_folder = Path(asset.image_path).parent
 
-        annotations = get_task_snapshot(fov_folder,current_annotator)
+        annotations , task_timing = get_task_snapshot(fov_folder,current_annotator)
 
-        return jsonify({"annotations": annotations})
+        return jsonify({"annotations": annotations , "taskTiming": task_timing})
 
     except Exception as e:
         print(f"Error loading annotations: {e}")

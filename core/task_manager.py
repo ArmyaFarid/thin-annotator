@@ -28,19 +28,20 @@ def get_task_snapshot(project_root, annotator: AnnotatorProfile | None):
     project_file = resolve_task_file(project_root, annotator)
 
     if not project_file.exists():
-        return None
+        return None, None
 
     with open(project_file, "r", encoding="utf-8") as f:
-        saved = json.load(f)
+        snapshot_json_content = json.load(f)
 
-    if isinstance(saved, list):
-        return saved                    # legacy format
-    if isinstance(saved, dict):
-        return saved.get("data")
+    if isinstance(snapshot_json_content, list):
+        return snapshot_json_content, None                 # legacy format
+    if isinstance(snapshot_json_content, dict):
+        print("here",flush=True)
+        return snapshot_json_content.get("data") , snapshot_json_content.get("taskTiming", None)
 
-    raise ValueError(f"unexpected task.json structure: {type(saved).__name__}")
+    raise ValueError(f"unexpected task.json structure: {type(snapshot_json_content).__name__}")
 
-def save_task_snapshot(project_root, pairs_code, sample_id, annotation_data, annotator : AnnotatorProfile):
+def save_task_snapshot(project_root, pairs_code, sample_id, annotation_data,task_timing, annotator : AnnotatorProfile):
     project_root = Path(project_root)
 
     if annotator:
@@ -50,6 +51,7 @@ def save_task_snapshot(project_root, pairs_code, sample_id, annotation_data, ann
 
     payload = {
         "data": annotation_data,  # your list stays untouched
+        "taskTiming": task_timing,
         "_meta": {
             "version": "1.0.0",
             "saved_at": datetime.utcnow().isoformat(),
@@ -66,5 +68,5 @@ def save_task_snapshot(project_root, pairs_code, sample_id, annotation_data, ann
 
 def load_task_from_folder(path, annotator : AnnotatorProfile | None):
     thin_section_id , fov_id , image_count = init_thin_section_fov_images(path)
-    annotations = get_task_snapshot(path,annotator)
-    return {"pairsCode": thin_section_id,"image_count":image_count, "sampleId": fov_id, "annotations": annotations}
+    annotations , task_timing = get_task_snapshot(path,annotator)
+    return {"pairsCode": thin_section_id,"image_count":image_count, "sampleId": fov_id, "annotations": annotations , "taskTiming": task_timing}
