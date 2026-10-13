@@ -132,7 +132,7 @@ class InferenceImageAPI:
                     multimask_output=True,
                 )
                 subpart, part, whole = masks[0], masks[1], masks[2]
-                masks_binary = clean_mask(part, max_hole_area=200, min_object_area=400)
+                masks_binary = clean_mask(part, max_hole_area=400, min_object_area=400)
             else:
                 masks_binary = np.zeros(session_data["orig_hw"], dtype=bool)
 
