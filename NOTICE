@@ -10,3 +10,9 @@ Licensed under the Apache License, Version 2.0.
 
 This product includes software developed by Meta Platforms, Inc. and affiliates
 as part of the SAM 2 project.
+
+Vendored SAM 2 source
+The sam2/ directory is a copy of the sam2/ package from
+https://github.com/facebookresearch/sam2 at commit
+2b90b9f5ceec907a1c18123530e92e794ad901a4, with local modifications to
+sam2/sam2_image_predictor.py. Its license is in sam2/LICENSE.
