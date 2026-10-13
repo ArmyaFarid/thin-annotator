@@ -39,6 +39,7 @@ def kill_port(port):
 WINDOW_BG = "#ececec"
 TEXT_COLOR = "#1d1d1f"
 UI_FONT = ("Helvetica", 14)
+ASSETS_DIR = os.path.join(getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__))), "assets")
 DOT_COLORS = {"green": "#5ac05a", "orange": "#f5a623", "red": "#e5534b"}
 
 
@@ -144,6 +145,8 @@ def main():
     root.title("ThinAnnotator Control Panel")
     root.geometry("640x340")
     root.configure(bg=WINDOW_BG)
+    app_icon = tk.PhotoImage(file=os.path.join(ASSETS_DIR, "thinannotator-app-icon-rounded-512.png"))
+    root.iconphoto(True, app_icon)
 
     container = tk.Frame(root, bg=WINDOW_BG)
     container.pack(fill="both", expand=True, padx=16, pady=16)

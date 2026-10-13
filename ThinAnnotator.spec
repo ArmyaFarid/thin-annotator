@@ -2,7 +2,7 @@
 from PyInstaller.utils.hooks import collect_submodules
 from PyInstaller.utils.hooks import collect_all
 
-datas = [('frontend_payload', 'frontend_payload'), ('checkpoints', 'checkpoints'), ('configs', 'configs')]
+datas = [('frontend_payload', 'frontend_payload'), ('checkpoints', 'checkpoints'), ('configs', 'configs'), ('assets', 'assets')]
 binaries = []
 hiddenimports = ['sam2.modeling.backbones.hieradet']
 hiddenimports += collect_submodules('sam2')
@@ -41,6 +41,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon='assets/ThinAnnotator.icns',
 )
 coll = COLLECT(
     exe,
@@ -54,6 +55,6 @@ coll = COLLECT(
 app = BUNDLE(
     coll,
     name='ThinAnnotator.app',
-    icon=None,
+    icon='assets/ThinAnnotator.icns',
     bundle_identifier=None,
 )
