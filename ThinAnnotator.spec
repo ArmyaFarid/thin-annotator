@@ -2,7 +2,7 @@
 from PyInstaller.utils.hooks import collect_submodules
 from PyInstaller.utils.hooks import collect_all
 
-datas = [('frontend_payload', 'frontend_payload'), ('checkpoints', 'checkpoints'), ('configs', 'configs'), ('assets', 'assets')]
+datas = [('frontend_payload', 'frontend_payload'), ('checkpoints', 'checkpoints'), ('configs', 'configs'), ('assets', 'assets'), ('docs', 'docs')]
 binaries = []
 hiddenimports = ['sam2.modeling.backbones.hieradet']
 hiddenimports += collect_submodules('sam2')

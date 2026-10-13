@@ -11,12 +11,19 @@ gunicorn --worker-class gthread app:app --workers 1 --threads 2 --bind 0.0.0.0:7
 
 
 
+pyinstaller --noconfirm ThinAnnotator.spec
+
+
+
 pyinstaller --noconfirm --onedir --windowed \
     --name "ThinAnnotator" \
+    --icon "assets/ThinAnnotator.icns" \
     --paths "/Users/armyabakouan/UQAC/RESEARCH/experiments/sam2" \
     --add-data "frontend_payload:frontend_payload" \
     --add-data "checkpoints:checkpoints" \
     --add-data "configs:configs" \
+    --add-data "assets:assets" \
+    --add-data "docs:docs" \
     --collect-all torch \
     --collect-submodules sam2 \
     --hidden-import sam2.modeling.backbones.hieradet \
@@ -29,8 +36,16 @@ pyinstaller --noconfirm --onedir --windowed `
     --add-data "frontend_payload;frontend_payload" `
     --add-data "checkpoints;checkpoints" `
     --add-data "configs;configs" `
+    --add-data "assets;assets" `
+    --add-data "docs;docs" `
     --add-data "C:/Users/Armya/Documents/ANNOTATOR/sam2/sam2;sam2" `
     --collect-all torch `
     --collect-submodules sam2 `
     --hidden-import sam2.modeling.backbones.hieradet `
     launcher.py
+
+
+
+Editor:      http://127.0.0.1:7263/
+User guide:  http://127.0.0.1:7263/docs/user-guide/
+Guide (FR):  http://127.0.0.1:7263/docs/user-guide/index.fr.html

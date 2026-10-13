@@ -12,6 +12,7 @@ import os
 import signal
 import subprocess
 import time
+from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
 from dataset_manager.coco_extractor import build_dataset
@@ -40,6 +41,7 @@ WINDOW_BG = "#ececec"
 TEXT_COLOR = "#1d1d1f"
 UI_FONT = ("Helvetica", 14)
 ASSETS_DIR = os.path.join(getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__))), "assets")
+DOCS_DIR = os.path.join(getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__))), "docs")
 DOT_COLORS = {"green": "#5ac05a", "orange": "#f5a623", "red": "#e5534b"}
 
 
@@ -143,7 +145,7 @@ def main():
 
     root = tk.Tk()
     root.title("ThinAnnotator Control Panel")
-    root.geometry("640x340")
+    root.geometry("640x392")
     root.configure(bg=WINDOW_BG)
     app_icon = tk.PhotoImage(file=os.path.join(ASSETS_DIR, "thinannotator-app-icon-rounded-512.png"))
     root.iconphoto(True, app_icon)
@@ -260,6 +262,9 @@ def main():
         except webbrowser.Error:
             # Fallback to default browser if Chrome isn't found
             webbrowser.open("http://127.0.0.1:7263")
+
+    def launch_docs():
+        webbrowser.open(Path(DOCS_DIR, "index.html").as_uri())
 
     def on_closing():
         stop_server_logic()
@@ -408,6 +413,9 @@ def main():
 
     browser_btn = RoundedButton(container, text="Open Annotator", command=launch_browser, state="disabled")
     browser_btn.pack(fill="x", pady=(8, 0))
+
+    docs_btn = RoundedButton(container, text="Open Docs", command=launch_docs)
+    docs_btn.pack(fill="x", pady=(8, 0))
 
     collect_dataset_btn = RoundedButton(
         container,
