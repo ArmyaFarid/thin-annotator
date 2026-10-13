@@ -15,16 +15,10 @@ import time
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
+import launcher_i18n
 from dataset_manager.coco_extractor import build_dataset
+from launcher_i18n import step_name, tr
 from main import start_backend_logic
-
-STEP_NAMES = {
-    "SCANNING": "Scanning dataset",
-    "JSON_FILES_COMPUTING": "Reading annotations",
-    "ZIPPING": "Writing ZIP archive",
-    "COPYING": "Copying uncompressed images",
-    "FINALIZING": "Finalizing dataset"
-}
 
 def kill_port(port):
     try:
@@ -74,6 +68,8 @@ class RoundedButton(tk.Canvas):
             self._text = kwargs.pop("text")
         if "state" in kwargs:
             self._state = kwargs.pop("state")
+        if "destructive_text" in kwargs:
+            self._destructive_text = kwargs.pop("destructive_text")
         if cnf or kwargs:
             super().configure(cnf, **kwargs)
         self._draw()
@@ -144,8 +140,8 @@ def main():
     kill_port(7263)
 
     root = tk.Tk()
-    root.title("ThinAnnotator Control Panel")
-    root.geometry("640x392")
+    root.title(tr("window_title"))
+    root.geometry("640x426")
     root.configure(bg=WINDOW_BG)
     app_icon = tk.PhotoImage(file=os.path.join(ASSETS_DIR, "thinannotator-app-icon-rounded-512.png"))
     root.iconphoto(True, app_icon)
@@ -153,7 +149,11 @@ def main():
     container = tk.Frame(root, bg=WINDOW_BG)
     container.pack(fill="both", expand=True, padx=16, pady=16)
 
-    status_label = StatusCard(container, text="Server stopped", fg="red")
+    lang_bar = tk.Frame(container, bg="#d9d9d9", padx=2, pady=2)
+    lang_bar.pack(anchor="e", pady=(0, 8))
+    lang_labels = {}
+
+    status_label = StatusCard(container, text=tr("server_stopped"), fg="red")
     status_label.pack(fill="x")
 
     # Progress dots animation label
@@ -166,9 +166,19 @@ def main():
         "dot_count": 0,
         "after_id": None,
         "server_ready": False,
+        "status": ("server_stopped", "red", {}),
+        "progress": None,
     }
 
     MAX_WAIT_SECONDS = 180  # SAM2 can be slow — give it 3 minutes
+
+    def set_status(key, color, **kwargs):
+        state["status"] = (key, color, kwargs)
+        status_label.config(text=tr(key, **kwargs), fg=color)
+
+    def set_progress(key=None, **kwargs):
+        state["progress"] = (key, kwargs) if key else None
+        progress_label.config(text=tr(key, **kwargs) if key else "")
 
     def animate_dots():
         if state["server_ready"]:  # ADD THIS CHECK
@@ -176,7 +186,7 @@ def main():
         """Animates '...' to show the UI is alive during loading."""
         if state["process"] and state["process"].is_alive():
             state["dot_count"] = (state["dot_count"] + 1) % 4
-            progress_label.config(text="Loading SAM2 models" + "." * state["dot_count"])
+            set_progress("loading_models", dots="." * state["dot_count"])
             state["after_id"] = root.after(500, animate_dots)
 
     def check_server():
@@ -186,17 +196,17 @@ def main():
         # --- Crash detection ---
         if state["process"] and not state["process"].is_alive():
             exit_code = state["process"].exitcode
-            status_label.config(text=f"Server crashed (exit {exit_code})", fg="red")
-            progress_label.config(text="Check terminal logs for details.")
-            start_btn.config(text="Start Server")
+            set_status("server_crashed", "red", code=exit_code)
+            set_progress("check_logs")
+            start_btn.config(text=tr("start_server"))
             state["process"] = None
             return
 
         # --- Timeout ---
         if state["check_attempts"] > MAX_WAIT_SECONDS:
-            status_label.config(text="Timeout: Server took too long", fg="red")
-            progress_label.config(text=f"Tried for {MAX_WAIT_SECONDS}s. Try restarting.")
-            start_btn.config(text="Start Server")
+            set_status("server_timeout", "red")
+            set_progress("tried_for", seconds=MAX_WAIT_SECONDS)
+            start_btn.config(text=tr("start_server"))
             stop_server_logic(silent=True)
             return
 
@@ -205,8 +215,8 @@ def main():
             response = urllib.request.urlopen("http://127.0.0.1:7263/healthy", timeout=1)
             if response.getcode() == 200:
                 state["server_ready"] = True
-                progress_label.config(text="")
-                status_label.config(text="Running on http://127.0.0.1:7263", fg="green")
+                set_progress()
+                set_status("server_running", "green")
                 browser_btn.config(state="normal")
                 return  # Success — stop polling
         except:
@@ -225,8 +235,8 @@ def main():
             state["process"].daemon = True
             state["process"].start()
 
-            status_label.config(text="Loading ThinAnnotator models...", fg="orange")
-            start_btn.config(text="Stop Server")
+            set_status("server_loading", "orange")
+            start_btn.config(text=tr("stop_server"))
             browser_btn.config(state="disabled")
 
             animate_dots()
@@ -251,9 +261,9 @@ def main():
             state["process"] = None
 
         if not silent:
-            progress_label.config(text="")
-            status_label.config(text="Server stopped", fg="red")
-            start_btn.config(text="Start Server")
+            set_progress()
+            set_status("server_stopped", "red")
+            start_btn.config(text=tr("start_server"))
             browser_btn.config(state="disabled")
 
     def launch_browser():
@@ -264,7 +274,8 @@ def main():
             webbrowser.open("http://127.0.0.1:7263")
 
     def launch_docs():
-        webbrowser.open(Path(DOCS_DIR, "index.html").as_uri())
+        page = "index.fr.html" if launcher_i18n.current_language == "fr" else "index.html"
+        webbrowser.open(Path(DOCS_DIR, page).as_uri())
 
     def on_closing():
         stop_server_logic()
@@ -273,7 +284,7 @@ def main():
 
     def open_generate_dataset_window():
         window = tk.Toplevel(root)
-        window.title("Generate Thin-COCO Dataset")
+        window.title(tr("dataset_title"))
         # Slightly taller to fit the checkbox comfortably
         window.geometry("600x330")
         window.resizable(False, False)
@@ -282,7 +293,7 @@ def main():
         output_var = tk.StringVar()
 
         # ---------------- INPUT ----------------
-        tk.Label(window, text="Source Folder:").pack(anchor="w", padx=10, pady=(10, 0))
+        tk.Label(window, text=tr("source_folder")).pack(anchor="w", padx=10, pady=(10, 0))
 
         input_frame = tk.Frame(window)
         input_frame.pack(fill="x", padx=10)
@@ -291,14 +302,14 @@ def main():
         input_entry.pack(side="left", expand=True, fill="x")
 
         def browse_input():
-            folder = filedialog.askdirectory(title="Select Source Folder")
+            folder = filedialog.askdirectory(title=tr("select_source"))
             if folder:
                 input_var.set(folder)
 
-        tk.Button(input_frame, text="Browse", command=browse_input).pack(side="left", padx=5)
+        tk.Button(input_frame, text=tr("browse"), command=browse_input).pack(side="left", padx=5)
 
         # ---------------- OUTPUT ----------------
-        tk.Label(window, text="Destination Folder:").pack(anchor="w", padx=10, pady=(10, 0))
+        tk.Label(window, text=tr("destination_folder")).pack(anchor="w", padx=10, pady=(10, 0))
 
         output_frame = tk.Frame(window)
         output_frame.pack(fill="x", padx=10)
@@ -307,17 +318,17 @@ def main():
         output_entry.pack(side="left", expand=True, fill="x")
 
         def browse_output():
-            folder = filedialog.askdirectory(title="Select Destination Folder")
+            folder = filedialog.askdirectory(title=tr("select_destination"))
             if folder:
                 output_var.set(folder)
 
-        tk.Button(output_frame, text="Browse", command=browse_output).pack(side="left", padx=5)
+        tk.Button(output_frame, text=tr("browse"), command=browse_output).pack(side="left", padx=5)
 
         # ---------------- ZIP CHECKBOX ----------------
         zip_var = tk.BooleanVar(value=False)  # Defaults to False (fast folder export)
         zip_checkbox = tk.Checkbutton(
             window,
-            text="Compress as .zip archive (Slower but saves space)",
+            text=tr("zip_option"),
             variable=zip_var
         )
         zip_checkbox.pack(anchor="w", padx=10, pady=(10, 0))
@@ -335,12 +346,12 @@ def main():
 
         step_label = tk.Label(
             window,
-            text="Preparing...",
+            text=tr("preparing"),
             font=("Arial", 10, "bold")
         )
         step_label.pack()
 
-        progress_label = tk.Label(window, text="Waiting...")
+        progress_label = tk.Label(window, text=tr("waiting"))
         progress_label.pack()
 
         def update_progress(current_action, current, total, filename):
@@ -350,7 +361,7 @@ def main():
             def ui_update():
                 progress_var.set(percent)
                 step_label.config(
-                    text=STEP_NAMES.get(current_action, current_action)
+                    text=step_name(current_action)
                 )
                 progress_label.config(
                     text=f"{current}/{total} • {filename} • {percent:.1f}%"
@@ -364,7 +375,7 @@ def main():
             output_folder = output_var.get()
 
             if not input_folder or not output_folder:
-                messagebox.showerror("Error", "Please select both folders.")
+                messagebox.showerror(tr("error"), tr("select_both"))
                 return
 
             def worker():
@@ -383,8 +394,8 @@ def main():
                     window.after(
                         0,
                         lambda: messagebox.showinfo(
-                            "Success",
-                            f"Thin-COCO dataset generated successfully!\n\nSaved to:\n{exported_path}"
+                            tr("success"),
+                            tr("dataset_done", path=exported_path)
                         )
                     )
                     window.after(0, window.destroy)
@@ -393,7 +404,7 @@ def main():
                     window.after(
                         0,
                         lambda: messagebox.showerror(
-                            "Generation Error",
+                            tr("generation_error"),
                             str(e)
                         )
                     )
@@ -402,30 +413,60 @@ def main():
 
         tk.Button(
             window,
-            text="Generate",
+            text=tr("generate"),
             command=generate_dataset,
             width=20,
             height=1
         ).pack(pady=10)
 
-    start_btn = RoundedButton(container, text="Start Server", command=toggle_server, primary=True, destructive_text="Stop Server")
+    start_btn = RoundedButton(container, text=tr("start_server"), command=toggle_server, primary=True, destructive_text=tr("stop_server"))
     start_btn.pack(fill="x", pady=(8, 0))
 
-    browser_btn = RoundedButton(container, text="Open Annotator", command=launch_browser, state="disabled")
+    browser_btn = RoundedButton(container, text=tr("open_annotator"), command=launch_browser, state="disabled")
     browser_btn.pack(fill="x", pady=(8, 0))
 
-    docs_btn = RoundedButton(container, text="Open Docs", command=launch_docs)
+    docs_btn = RoundedButton(container, text=tr("open_docs"), command=launch_docs)
     docs_btn.pack(fill="x", pady=(8, 0))
 
     collect_dataset_btn = RoundedButton(
         container,
-        text="Generate Thin-COCO dataset",
+        text=tr("generate_dataset"),
         command=open_generate_dataset_window,
     )
     collect_dataset_btn.pack(fill="x", pady=(8, 0))
 
-    exit_btn = RoundedButton(container, text="Exit Entirely", command=on_closing)
+    exit_btn = RoundedButton(container, text=tr("exit"), command=on_closing)
     exit_btn.pack(fill="x", pady=(8, 0))
+
+    def refresh_texts():
+        root.title(tr("window_title"))
+        key, color, kwargs = state["status"]
+        status_label.config(text=tr(key, **kwargs), fg=color)
+        if state["progress"]:
+            progress_key, progress_kwargs = state["progress"]
+            progress_label.config(text=tr(progress_key, **progress_kwargs))
+        start_btn.config(
+            text=tr("stop_server") if state["process"] else tr("start_server"),
+            destructive_text=tr("stop_server"),
+        )
+        browser_btn.config(text=tr("open_annotator"))
+        docs_btn.config(text=tr("open_docs"))
+        collect_dataset_btn.config(text=tr("generate_dataset"))
+        exit_btn.config(text=tr("exit"))
+        for code, label in lang_labels.items():
+            selected = code == launcher_i18n.current_language
+            label.config(bg="#ffffff" if selected else "#d9d9d9", fg=TEXT_COLOR if selected else "#6e6e73")
+
+    def change_language(code):
+        if code != launcher_i18n.current_language:
+            launcher_i18n.set_language(code)
+            refresh_texts()
+
+    for code in launcher_i18n.LANGUAGES:
+        lang_labels[code] = tk.Label(lang_bar, text=code.upper(), font=("Helvetica", 11, "bold"), padx=10, pady=2, cursor="hand2")
+        lang_labels[code].pack(side="left")
+        lang_labels[code].bind("<Button-1>", lambda event, c=code: change_language(c))
+    refresh_texts()
 
     root.protocol("WM_DELETE_WINDOW", on_closing)
     root.mainloop()
