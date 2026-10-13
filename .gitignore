@@ -10,10 +10,12 @@ uploads/
 results/
 posters/
 gallery/
-*.mp4
-*.jpg
-*.png
+thumbs/
+
+test/testdata/*
+
 !assets/*.png
+!docs/**/*.jpg
 #*.json
 *.bmp
 # --- Python & Environment ---

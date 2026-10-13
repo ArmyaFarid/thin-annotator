@@ -143,7 +143,7 @@ def main():
 
     root = tk.Tk()
     root.title("ThinAnnotator Control Panel")
-    root.geometry("640x340")
+    root.geometry("640x392")
     root.configure(bg=WINDOW_BG)
     app_icon = tk.PhotoImage(file=os.path.join(ASSETS_DIR, "thinannotator-app-icon-rounded-512.png"))
     root.iconphoto(True, app_icon)
@@ -206,6 +206,7 @@ def main():
                 progress_label.config(text="")
                 status_label.config(text="Running on http://127.0.0.1:7263", fg="green")
                 browser_btn.config(state="normal")
+                docs_btn.config(state="normal")
                 return  # Success — stop polling
         except:
             pass
@@ -226,6 +227,7 @@ def main():
             status_label.config(text="Loading ThinAnnotator models...", fg="orange")
             start_btn.config(text="Stop Server")
             browser_btn.config(state="disabled")
+            docs_btn.config(state="disabled")
 
             animate_dots()
             check_server()
@@ -253,6 +255,7 @@ def main():
             status_label.config(text="Server stopped", fg="red")
             start_btn.config(text="Start Server")
             browser_btn.config(state="disabled")
+            docs_btn.config(state="disabled")
 
     def launch_browser():
         try:
@@ -260,6 +263,12 @@ def main():
         except webbrowser.Error:
             # Fallback to default browser if Chrome isn't found
             webbrowser.open("http://127.0.0.1:7263")
+
+    def launch_docs():
+        try:
+            webbrowser.get("chrome").open("http://127.0.0.1:7263/docs/")
+        except webbrowser.Error:
+            webbrowser.open("http://127.0.0.1:7263/docs/")
 
     def on_closing():
         stop_server_logic()
@@ -408,6 +417,9 @@ def main():
 
     browser_btn = RoundedButton(container, text="Open Annotator", command=launch_browser, state="disabled")
     browser_btn.pack(fill="x", pady=(8, 0))
+
+    docs_btn = RoundedButton(container, text="Open Docs", command=launch_docs, state="disabled")
+    docs_btn.pack(fill="x", pady=(8, 0))
 
     collect_dataset_btn = RoundedButton(
         container,

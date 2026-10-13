@@ -37,6 +37,8 @@ from preprocessing.pngconverter import to_png_bytes, LossyConversion, cached_png
 from routes.api.annotation import annotation_blueprint
 from routes.api.batch import batch_blueprint
 from routes.api.task import task_blueprint
+from routes.web.docs import docs_blueprint
+from routes.web.editor import editor_blueprint
 from system.disk_caching.host_caching import CACHE_DIR
 from system.disk_caching.sweeper import start_sweeper, sweep
 
@@ -63,18 +65,8 @@ app.before_request(load_annotator)
 app.register_blueprint(task_blueprint)
 app.register_blueprint(annotation_blueprint)
 app.register_blueprint(batch_blueprint)
-
-@app.route("/")
-def serve_index():
-    return send_from_directory(app.static_folder, "index.html")
-
-@app.route("/<path:path>")
-def serve_static(path):
-    # Check if the requested file exists in the 'dist' folder
-    if os.path.exists(os.path.join(app.static_folder, path)):
-        return send_from_directory(app.static_folder, path)
-    # Otherwise, fall back to index.html for React Router
-    return send_from_directory(app.static_folder, "index.html")
+app.register_blueprint(docs_blueprint)
+app.register_blueprint(editor_blueprint)
 
 @app.route("/healthy")
 def healthy() -> Response:

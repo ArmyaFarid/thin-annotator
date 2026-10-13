@@ -1,0 +1,119 @@
+:root {
+    --bg: #222629;
+    --surface: #2c3135;
+    --line: rgba(255, 255, 255, 0.10);
+    --line-strong: rgba(255, 255, 255, 0.20);
+    --fg: #eceff1;
+    --fg-soft: #c4cbd0;
+    --muted: #8e989f;
+    --accent: #4fc3f7;
+    --accent-soft: rgba(79, 195, 247, 0.14);
+    --shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+    --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+    --font-body: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+    color-scheme: dark;
+}
+
+@media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+        --bg: #f4f6f7; --surface: #ffffff;
+        --line: rgba(20, 30, 40, 0.10); --line-strong: rgba(20, 30, 40, 0.22);
+        --fg: #172026; --fg-soft: #36434c; --muted: #5d6a73;
+        --accent: #0277bd; --accent-soft: rgba(2, 119, 189, 0.10);
+        --shadow: 0 14px 40px rgba(20, 30, 40, 0.15);
+        color-scheme: light;
+    }
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-body);
+    font-size: 1.0625rem;
+    line-height: 1.55;
+    display: flex;
+    flex-direction: column;
+}
+
+a { color: inherit; }
+
+main {
+    width: 100%;
+    max-width: 52rem;
+    margin: 0 auto;
+    padding: clamp(2.5rem, 8vw, 5.5rem) 1rem 3rem;
+    flex: 1;
+}
+
+.top { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 2.5rem; }
+.brand { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; }
+.brand img { width: 40px; height: 40px; }
+.brand b { font-family: var(--font-display); font-stretch: 115%; font-weight: 700; font-size: 1.15rem; }
+
+.eyebrow { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin: 0 0 0.6rem; }
+
+h1 {
+    font-family: var(--font-display);
+    font-stretch: 120%;
+    font-weight: 800;
+    font-size: clamp(2.1rem, 5vw, 3.1rem);
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    margin: 0 0 0.8rem;
+    text-wrap: balance;
+}
+
+.lede { color: var(--fg-soft); margin: 0 0 2.5rem; max-width: 36rem; }
+
+.menu { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 1rem; }
+.menu li {
+    display: flex;
+    flex-direction: column;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+.menu li:has(a.card:hover), .menu li:has(a.card:focus-visible) { border-color: var(--accent); box-shadow: var(--shadow); transform: translateY(-2px); }
+
+.card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    flex: 1;
+    padding: 1.4rem 1.4rem 1.2rem;
+    border-radius: 14px;
+    text-decoration: none;
+    outline: none;
+}
+
+.card h2 { font-family: var(--font-display); font-stretch: 110%; font-weight: 700; font-size: 1.3rem; margin: 0; }
+.card p { color: var(--fg-soft); margin: 0; flex: 1; }
+.card .go { font-family: var(--font-mono); font-size: 0.8rem; color: var(--accent); margin-top: 0.6rem; }
+
+.tag {
+    align-self: flex-start;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: var(--accent-soft);
+    border-radius: 999px;
+    padding: 0.15rem 0.6rem;
+}
+
+.lang-switch { display: flex; gap: 2px; padding: 2px; border: 1px solid var(--line-strong); border-radius: 8px; width: max-content; }
+.lang-switch a { font: 600 0.78rem var(--font-mono); letter-spacing: 0.06em; padding: 0.2rem 0.6rem; border-radius: 6px; color: var(--muted); text-decoration: none; }
+.lang-switch a:hover { color: var(--fg); }
+.lang-switch a[aria-current="page"] { background: var(--accent-soft); color: var(--fg); }
+
+.back { display: inline-block; margin-top: 2rem; color: var(--accent); text-decoration: none; font-family: var(--font-mono); font-size: 0.85rem; }
+.back:hover { text-decoration: underline; }
+
+footer { border-top: 1px solid var(--line); color: var(--muted); font-size: 0.85rem; padding: 1.2rem 1rem; text-align: center; }
