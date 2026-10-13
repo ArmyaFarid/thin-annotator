@@ -12,6 +12,7 @@ import os
 import signal
 import subprocess
 import time
+from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
 from dataset_manager.coco_extractor import build_dataset
@@ -40,6 +41,7 @@ WINDOW_BG = "#ececec"
 TEXT_COLOR = "#1d1d1f"
 UI_FONT = ("Helvetica", 14)
 ASSETS_DIR = os.path.join(getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__))), "assets")
+DOCS_DIR = os.path.join(getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__))), "docs")
 DOT_COLORS = {"green": "#5ac05a", "orange": "#f5a623", "red": "#e5534b"}
 
 
@@ -206,7 +208,6 @@ def main():
                 progress_label.config(text="")
                 status_label.config(text="Running on http://127.0.0.1:7263", fg="green")
                 browser_btn.config(state="normal")
-                docs_btn.config(state="normal")
                 return  # Success — stop polling
         except:
             pass
@@ -227,7 +228,6 @@ def main():
             status_label.config(text="Loading ThinAnnotator models...", fg="orange")
             start_btn.config(text="Stop Server")
             browser_btn.config(state="disabled")
-            docs_btn.config(state="disabled")
 
             animate_dots()
             check_server()
@@ -255,7 +255,6 @@ def main():
             status_label.config(text="Server stopped", fg="red")
             start_btn.config(text="Start Server")
             browser_btn.config(state="disabled")
-            docs_btn.config(state="disabled")
 
     def launch_browser():
         try:
@@ -265,10 +264,7 @@ def main():
             webbrowser.open("http://127.0.0.1:7263")
 
     def launch_docs():
-        try:
-            webbrowser.get("chrome").open("http://127.0.0.1:7263/docs/")
-        except webbrowser.Error:
-            webbrowser.open("http://127.0.0.1:7263/docs/")
+        webbrowser.open(Path(DOCS_DIR, "index.html").as_uri())
 
     def on_closing():
         stop_server_logic()
@@ -418,7 +414,7 @@ def main():
     browser_btn = RoundedButton(container, text="Open Annotator", command=launch_browser, state="disabled")
     browser_btn.pack(fill="x", pady=(8, 0))
 
-    docs_btn = RoundedButton(container, text="Open Docs", command=launch_docs, state="disabled")
+    docs_btn = RoundedButton(container, text="Open Docs", command=launch_docs)
     docs_btn.pack(fill="x", pady=(8, 0))
 
     collect_dataset_btn = RoundedButton(
