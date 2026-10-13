@@ -48,5 +48,3 @@ dist/*
 .claude/
 CLAUDE.md
 .claude.json
-CLAUDE.local.md
-.mcp.json

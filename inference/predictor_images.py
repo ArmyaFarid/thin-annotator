@@ -14,6 +14,7 @@ import numpy as np
 import torch
 from app_conf import APP_ROOT, MODEL_SIZE, SAM_PREPROCESSED_IMAGE_PATH
 from extensions import db
+from mask_utilities.holes import remove_holes, clean_mask
 from models import FOVAsset
 from inference.data_types import (
     AddPointsImageRequest,
@@ -131,7 +132,7 @@ class InferenceImageAPI:
                     multimask_output=True,
                 )
                 subpart, part, whole = masks[0], masks[1], masks[2]
-                masks_binary = part
+                masks_binary = clean_mask(part, max_hole_area=200, min_object_area=400)
             else:
                 masks_binary = np.zeros(session_data["orig_hw"], dtype=bool)
 
