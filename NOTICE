@@ -15,4 +15,5 @@ Vendored SAM 2 source
 The sam2/ directory is a copy of the sam2/ package from
 https://github.com/facebookresearch/sam2 at commit
 2b90b9f5ceec907a1c18123530e92e794ad901a4, with local modifications to
-sam2/sam2_image_predictor.py. Its license is in sam2/LICENSE.
+sam2/sam2_image_predictor.py. The optional CUDA extension (sam2/csrc/) is
+not included. The SAM 2 license is in sam2/LICENSE.
