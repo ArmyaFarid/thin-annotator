@@ -5,23 +5,7 @@
 #
 # Modifications Copyright (c) 2025 Armya BAKOUAN -- see NOTICE for details.
 
-import hashlib
-import os
-import shutil
-import tempfile
-from pathlib import Path
-from typing import Iterable, List, Optional, Tuple, Union
-import av
 import strawberry
-from app_conf import (
-    DATA_PATH,
-    DEFAULT_VIDEO_PATH,
-    MAX_UPLOAD_VIDEO_DURATION,
-    UPLOADS_PATH,
-    UPLOADS_PREFIX,
-)
-from strawberry.file_uploads import Upload
-
 from data.image_schema import ImageMutation, ImageQuery, ThinSectionImagePairsQuery, AnnotationMutation
 
 
