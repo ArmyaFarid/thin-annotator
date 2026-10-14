@@ -89,7 +89,11 @@ def current_task():
 
     task = Task.query.filter_by(batch_id=batch_id, is_current=True).first()
     if task is None:
-        task = _frontier(batch_id)
+        # A finished batch reopens at its first task so it can be reviewed.
+        task = _frontier(batch_id) or (Task.query
+                                       .filter_by(batch_id=batch_id)
+                                       .order_by(Task.order)
+                                       .first())
         if task is None:
             return jsonify({"done": True, "total": batch.task_count})
         _set_current(batch_id, task)
