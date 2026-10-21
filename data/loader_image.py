@@ -16,8 +16,8 @@ from pathlib import Path
 from typing import Dict, Optional
 
 import imagesize
-from app_conf import GALLERY_PATH, POSTERS_PATH, POSTERS_PREFIX, THUMBNAILS_PATH, THUMBNAILS_PREFIX,THIN_SECTION_FOV_SAMPLE_PATH
-from data.data_types import Image, Video
+from app_conf import GALLERY_PATH, THUMBNAILS_PATH, THUMBNAILS_PREFIX,THIN_SECTION_FOV_SAMPLE_PATH
+from data.data_types import Image
 from tqdm import tqdm
 
 from data.parsers.fov_file_parser import parse_fov_filename

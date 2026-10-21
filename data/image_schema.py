@@ -9,7 +9,7 @@ import strawberry
 from typing import Iterable, List
 from data.data_types import (
     AddPointsImageInput, Image, StartSessionInput, StartSession,
-    AddPointsInput, RLEMaskListOnFrame,
+    RLEMaskListOnFrame,
     RLEMaskForObject, RLEMask, ThinSectionImagePairs, SlicImageInput, SaveAnnotationsResult, SlicLabelMap, BBox
 )
 from app_conf import DATA_PATH, THIN_SECTION_FOV_SAMPLE_PATH
