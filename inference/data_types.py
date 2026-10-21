@@ -6,11 +6,10 @@
 # Modifications Copyright (c) 2025 Armya BAKOUAN -- see NOTICE for details.
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Union, Tuple
+from typing import List, Optional, Tuple
 
 import numpy as np
 from dataclasses_json import dataclass_json
-from torch import Tensor
 
 
 @dataclass_json
@@ -38,45 +37,6 @@ class StartSessionRequest(BaseRequest):
 
 @dataclass_json
 @dataclass
-class SaveSessionRequest(BaseRequest):
-    type: str
-    session_id: str
-
-
-@dataclass_json
-@dataclass
-class LoadSessionRequest(BaseRequest):
-    type: str
-    session_id: str
-
-
-@dataclass_json
-@dataclass
-class RenewSessionRequest(BaseRequest):
-    type: str
-    session_id: str
-
-
-@dataclass_json
-@dataclass
-class CloseSessionRequest(BaseRequest):
-    type: str
-    session_id: str
-
-
-@dataclass_json
-@dataclass
-class AddPointsRequest(BaseRequest):
-    type: str
-    session_id: str
-    frame_index: int
-    clear_old_points: bool
-    object_id: int
-    labels: List[int]
-    points: List[List[float]]
-
-@dataclass_json
-@dataclass
 class AddPointsImageRequest(BaseRequest):
     type: str
     # session_id: str
@@ -96,89 +56,11 @@ class SlicImageRequest(BaseRequest):
     image_id: str
     bbox: List[float]
 
-@dataclass_json
-@dataclass
-class AddMaskRequest(BaseRequest):
-    type: str
-    session_id: str
-    frame_index: int
-    object_id: int
-    mask: Mask
-
-
-@dataclass_json
-@dataclass
-class ClearPointsInFrameRequest(BaseRequest):
-    type: str
-    session_id: str
-    frame_index: int
-    object_id: int
-
-
-@dataclass_json
-@dataclass
-class ClearPointsInVideoRequest(BaseRequest):
-    type: str
-    session_id: str
-
-
-@dataclass_json
-@dataclass
-class RemoveObjectRequest(BaseRequest):
-    type: str
-    session_id: str
-    object_id: int
-
-
-@dataclass_json
-@dataclass
-class PropagateInVideoRequest(BaseRequest):
-    type: str
-    session_id: str
-    start_frame_index: int
-
-
-@dataclass_json
-@dataclass
-class CancelPropagateInVideoRequest(BaseRequest):
-    type: str
-    session_id: str
-
 
 @dataclass_json
 @dataclass
 class StartSessionResponse:
     session_id: str
-
-
-@dataclass_json
-@dataclass
-class SaveSessionResponse:
-    session_id: str
-
-
-@dataclass_json
-@dataclass
-class LoadSessionResponse:
-    session_id: str
-
-
-@dataclass_json
-@dataclass
-class RenewSessionResponse:
-    session_id: str
-
-
-@dataclass_json
-@dataclass
-class CloseSessionResponse:
-    success: bool
-
-
-@dataclass_json
-@dataclass
-class ClearPointsInVideoResponse:
-    success: bool
 
 
 @dataclass_json
@@ -194,28 +76,8 @@ class PropagateDataResponse:
     frame_index: int
     results: List[PropagateDataValue]
 
+
 @dataclass_json
 @dataclass
 class PropagateLabelMapDataResponse:
     data: Tuple[np.ndarray, Tuple[int, int, int, int]]
-
-
-@dataclass_json
-@dataclass
-class RemoveObjectResponse:
-    results: List[PropagateDataResponse]
-
-
-@dataclass_json
-@dataclass
-class CancelPorpagateResponse:
-    success: bool
-
-
-@dataclass_json
-@dataclass
-class InferenceSession:
-    start_time: float
-    last_use_time: float
-    session_id: str
-    state: Dict[str, Dict[str, Union[Tensor, Dict[int, Tensor]]]]

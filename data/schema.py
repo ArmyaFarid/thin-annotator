@@ -12,7 +12,7 @@ from data.image_schema import ImageMutation, ImageQuery, ThinSectionImagePairsQu
 @strawberry.type
 class Query(ImageQuery,ThinSectionImagePairsQuery):
     """
-    Inherits 'videos' from VideoQuery and 'images' from ImageQuery.
+    Inherits 'images' from ImageQuery and the pairs queries from ThinSectionImagePairsQuery.
     """
     pass
 

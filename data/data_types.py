@@ -14,7 +14,7 @@ import strawberry
 from strawberry.scalars import JSON
 
 from app_conf import API_URL
-from data.resolver import resolve_images, resolve_videos, resolve_acquired_images, resolve_thin_section_image_pairs, \
+from data.resolver import resolve_images, resolve_acquired_images, resolve_thin_section_image_pairs, \
     resolve_acquired_images_from_db
 from dataclasses_json import dataclass_json
 from strawberry import relay
@@ -28,35 +28,6 @@ def unique_preserve_order(values):
             result.append(v)
     return result
 
-
-@strawberry.type
-class Video(relay.Node):
-    """Core type for video."""
-
-    code: relay.NodeID[str]
-    path: str
-    poster_path: Optional[str]
-    width: int
-    height: int
-
-    @strawberry.field
-    def url(self) -> str:
-        return f"{API_URL}/{self.path}"
-
-    @strawberry.field
-    def poster_url(self) -> str:
-        return f"{API_URL}/{self.poster_path}"
-
-    @classmethod
-    def resolve_nodes(
-        cls,
-        *,
-        info: relay.PageInfo,
-        node_ids: Iterable[str],
-        required: bool = False,
-    ):
-        return resolve_videos(node_ids, required)
-    
 
 @strawberry.type
 class Image(relay.Node):
@@ -261,37 +232,6 @@ class StartSession:
 
 
 @strawberry.input
-class PingInput:
-    session_id: str
-
-
-@strawberry.type
-class Pong:
-    success: bool
-
-
-@strawberry.input
-class CloseSessionInput:
-    session_id: str
-
-
-@strawberry.type
-class CloseSession:
-    success: bool
-
-
-@strawberry.input
-class AddPointsInput:
-    session_id: str
-    frame_index: int
-    clear_old_points: bool
-    object_id: int
-    labels: List[int]
-    points: List[List[float]]
-    bboxes: List[List[float]]
-
-
-@strawberry.input
 class AddPointsImageInput:
     # session_id: str
     image_path: str
@@ -315,22 +255,6 @@ class SaveAnnotationsInput:
     pairsCode: str
     sampleId: str
     data: JSON
-
-
-@strawberry.input
-class RemoveObjectInput:
-    session_id: str
-    object_id: int
-
-
-
-
-@strawberry.type
-class SessionExpiration:
-    session_id: str
-    expiration_time: int
-    max_expiration_time: int
-    ttl: int
 
 
 @strawberry.type

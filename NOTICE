@@ -15,5 +15,9 @@ Vendored SAM 2 source
 The sam2/ directory is a copy of the sam2/ package from
 https://github.com/facebookresearch/sam2 at commit
 2b90b9f5ceec907a1c18123530e92e794ad901a4, with local modifications to
-sam2/sam2_image_predictor.py. The optional CUDA extension (sam2/csrc/) is
-not included. The SAM 2 license is in sam2/LICENSE.
+sam2/sam2_image_predictor.py and sam2/build_sam.py. The optional CUDA
+extension (sam2/csrc/) is not included. The video predictors
+(sam2/sam2_video_predictor.py, sam2/sam2_video_predictor_legacy.py), the
+video benchmark (sam2/benchmark.py), the video training config
+(sam2/configs/sam2.1_training/) and the video predictor builders in
+sam2/build_sam.py are removed. The SAM 2 license is in sam2/LICENSE.
