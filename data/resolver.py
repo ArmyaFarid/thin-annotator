@@ -12,18 +12,6 @@ from extensions import db
 from models import FOVAsset
 
 
-def resolve_videos(node_ids: Iterable[str], required: bool = False):
-    """
-    Resolve videos given node ids.
-    """
-    from data.store import get_videos
-
-    all_videos = get_videos()
-    return [
-        all_videos[nid] if required else all_videos.get(nid, None) for nid in node_ids
-    ]
-
-
 def resolve_images(node_ids: Iterable[str], required: bool = False):
     """
     Resolve images given node ids.

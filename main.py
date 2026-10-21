@@ -14,10 +14,6 @@ from typing import Any
 from app_conf import (
     GALLERY_PATH,
     GALLERY_PREFIX,
-    POSTERS_PATH,
-    POSTERS_PREFIX,
-    UPLOADS_PATH,
-    UPLOADS_PREFIX,
     get_flask_stattic_resource_path, get_writable_dir,
 )
 from core.annotator import load_annotator
@@ -157,27 +153,6 @@ def serve_fov_image(image_id: str):
     resp.cache_control.private = True
     resp.cache_control.max_age = 1800
     return resp
-
-@app.route(f"/{POSTERS_PREFIX}/<path:path>", methods=["GET"])
-def send_poster_image(path: str) -> Response:
-    try:
-        return send_from_directory(
-            POSTERS_PATH,
-            path,
-        )
-    except:
-        raise ValueError("resource not found")
-
-
-@app.route(f"/{UPLOADS_PREFIX}/<path:path>", methods=["GET"])
-def send_uploaded_video(path: str):
-    try:
-        return send_from_directory(
-            UPLOADS_PATH,
-            path,
-        )
-    except:
-        raise ValueError("resource not found")
 
 @app.route("/api/annotation-options", methods=["GET"])
 def annotation_options():
