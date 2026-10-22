@@ -64,5 +64,5 @@ The macOS app is not signed. On another Mac, Gatekeeper blocks the first launch.
 ## Dependencies
 
 - Change dependencies in `pyproject.toml`, then run `uv lock` and commit `uv.lock`.
-- `constraint-dependencies` in `pyproject.toml` holds some transitive packages at tested versions. For example, `strawberry-graphql` 0.291.3 fails with `graphql-core` 3.3.
+- `constraint-dependencies` in `pyproject.toml` holds some transitive packages at tested versions.
 - `sam2/` is vendored SAM 2 source with local changes. See `NOTICE`.

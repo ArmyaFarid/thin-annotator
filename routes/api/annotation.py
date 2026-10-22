@@ -1,4 +1,3 @@
-import base64
 import json
 import os
 from dataclasses import asdict
@@ -28,12 +27,8 @@ def save_annotations():
         return jsonify({"success": False, "error": "Missing required fields"}), 400
 
     try:
-        decoded = base64.b64decode(image_id).decode("utf-8")
-
-        entity_type, real_id = decoded.split(":", 1)
-
         asset = FOVAsset.query.filter_by(
-            id=real_id,
+            id=image_id,
             thin_section_id=pairs_code,
             fov_id=sample_id
         ).first()

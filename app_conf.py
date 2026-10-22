@@ -54,8 +54,6 @@ SAM_PREPROCESSED_IMAGE_PREFIX = "sam-preprocessed"
 # Path where all SAM-preprocessed images are stored
 SAM_PREPROCESSED_IMAGE_PATH = get_writable_dir() / SAM_PREPROCESSED_IMAGE_PREFIX
 
-CSV_PATH = "./data/gallery/image_pairs.csv"
-
 # Make sure any of those paths exist
 os.makedirs(DATA_PATH, exist_ok=True)
 os.makedirs(GALLERY_PATH, exist_ok=True)

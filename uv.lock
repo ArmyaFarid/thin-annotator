@@ -5,10 +5,8 @@ requires-python = "==3.10.*"
 [manifest]
 constraints = [
     { name = "click", specifier = "==8.3.3" },
-    { name = "cross-web", specifier = "==0.6.0" },
     { name = "filelock", specifier = "==3.29.0" },
     { name = "fsspec", specifier = "==2026.3.0" },
-    { name = "graphql-core", specifier = "==3.2.8" },
     { name = "imageio", specifier = "==2.37.3" },
     { name = "lazy-loader", specifier = "==0.5" },
     { name = "markupsafe", specifier = "==3.0.3" },
@@ -65,18 +63,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/d8/53/6f443c9a4a8358a93a6792e2acffb9d9d5cb0a5cfd8802644b7b1c9a02e4/colorama-0.4.6.tar.gz", hash = "sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44", size = 27697, upload-time = "2022-10-25T02:36:22.414Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d1/d6/3965ed04c63042e047cb6a3e6ed1a63a35087b6a609aa3a15ed8ac56c221/colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6", size = 25335, upload-time = "2022-10-25T02:36:20.889Z" },
-]
-
-[[package]]
-name = "cross-web"
-version = "0.6.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "typing-extensions" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/ad/83/b5ef04565acc065387dda3a4fbf0c4cfb6bab805c81b66b2bc5b5ac9a282/cross_web-0.6.0.tar.gz", hash = "sha256:ae90570802615365ca1a781117b43bfd0d6cd3bf611649d24c3a206a82a693c9", size = 331315, upload-time = "2026-04-13T14:29:12.718Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/35/a2/dab06d9b80cb76c700883186a9a2e6fd103342c9b4def4d88f5787796e17/cross_web-0.6.0-py3-none-any.whl", hash = "sha256:bdebf0c08d02f3a48cf67b6904d3a6d8fd8cab2cd905592ab96ab00b259cd582", size = 24820, upload-time = "2026-04-13T14:29:11.198Z" },
 ]
 
 [[package]]
@@ -214,15 +200,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/e1/cf/b50ddf667c15276a9ab15a70ef5f257564de271957933ffea49d2cdbcdfb/fsspec-2026.3.0.tar.gz", hash = "sha256:1ee6a0e28677557f8c2f994e3eea77db6392b4de9cd1f5d7a9e87a0ae9d01b41", size = 313547, upload-time = "2026-03-27T19:11:14.892Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d5/1f/5f4a3cd9e4440e9d9bc78ad0a91a1c8d46b4d429d5239ebe6793c9fe5c41/fsspec-2026.3.0-py3-none-any.whl", hash = "sha256:d2ceafaad1b3457968ed14efa28798162f1638dbb5d2a6868a2db002a5ee39a4", size = 202595, upload-time = "2026-03-27T19:11:13.595Z" },
-]
-
-[[package]]
-name = "graphql-core"
-version = "3.2.8"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/68/c5/36aa96205c3ecbb3d34c7c24189e4553c7ca2ebc7e1dd07432339b980272/graphql_core-3.2.8.tar.gz", hash = "sha256:015457da5d996c924ddf57a43f4e959b0b94fb695b85ed4c29446e508ed65cf3", size = 513181, upload-time = "2026-03-05T19:55:37.332Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/86/41/cb887d9afc5dabd78feefe6ccbaf83ff423c206a7a1b7aeeac05120b2125/graphql_core-3.2.8-py3-none-any.whl", hash = "sha256:cbee07bee1b3ed5e531723685369039f32ff815ef60166686e0162f540f1520c", size = 207349, upload-time = "2026-03-05T19:55:35.911Z" },
 ]
 
 [[package]]
@@ -708,18 +685,6 @@ wheels = [
 ]
 
 [[package]]
-name = "python-dateutil"
-version = "2.9.0.post0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "six" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/66/c0/0c8b6ad9f17a802ee498c46e004a0eb49bc148f2fd230864601a86dcf6db/python-dateutil-2.9.0.post0.tar.gz", hash = "sha256:37dd54208da7e1cd875388217d5e00ebd4179249f90fb72437e91a35459a0ad3", size = 342432, upload-time = "2024-03-01T18:36:20.211Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/ec/57/56b9bcc3c9c6a792fcbaf139543cee77261f3651ca9da0c93f5c1221264b/python_dateutil-2.9.0.post0-py2.py3-none-any.whl", hash = "sha256:a8b2bc7bffae282281c8140a97d3aa9c14da0b136dfe83f850eea9a5f7470427", size = 229892, upload-time = "2024-03-01T18:36:18.57Z" },
-]
-
-[[package]]
 name = "pywin32"
 version = "312"
 source = { registry = "https://pypi.org/simple" }
@@ -807,15 +772,6 @@ wheels = [
 ]
 
 [[package]]
-name = "six"
-version = "1.17.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/94/e7/b2c673351809dca68a0e064b6af791aa332cf192da575fd474ed7d6f16a2/six-1.17.0.tar.gz", hash = "sha256:ff70335d468e7eb6ec65b95b99d3a2836546063f63acc5171de367e834932a81", size = 34031, upload-time = "2024-12-04T17:35:28.174Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/b7/ce/149a00dd41f10bc29e5921b496af8b574d8413afcd5e30dfa0ed46c2cc5e/six-1.17.0-py2.py3-none-any.whl", hash = "sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274", size = 11050, upload-time = "2024-12-04T17:35:26.475Z" },
-]
-
-[[package]]
 name = "sqlalchemy"
 version = "2.0.49"
 source = { registry = "https://pypi.org/simple" }
@@ -833,22 +789,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/69/ec/7be8c8cb35f038e963a203e4fe5a028989167cc7299927b7cf297c271e37/sqlalchemy-2.0.49-cp310-cp310-win32.whl", hash = "sha256:5e61abbec255be7b122aa461021daa7c3f310f3e743411a67079f9b3cc91ece3", size = 2119965, upload-time = "2026-04-03T17:00:50.009Z" },
     { url = "https://files.pythonhosted.org/packages/b5/31/0defb93e3a10b0cf7d1271aedd87251a08c3a597ee4f353281769b547b5a/sqlalchemy-2.0.49-cp310-cp310-win_amd64.whl", hash = "sha256:0c98c59075b890df8abfcc6ad632879540f5791c68baebacb4f833713b510e75", size = 2142935, upload-time = "2026-04-03T17:00:51.675Z" },
     { url = "https://files.pythonhosted.org/packages/e5/30/8519fdde58a7bdf155b714359791ad1dc018b47d60269d5d160d311fdc36/sqlalchemy-2.0.49-py3-none-any.whl", hash = "sha256:ec44cfa7ef1a728e88ad41674de50f6db8cfdb3e2af84af86e0041aaf02d43d0", size = 1942158, upload-time = "2026-04-03T16:53:44.135Z" },
-]
-
-[[package]]
-name = "strawberry-graphql"
-version = "0.291.3"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "cross-web" },
-    { name = "graphql-core" },
-    { name = "packaging" },
-    { name = "python-dateutil" },
-    { name = "typing-extensions" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/08/30/e183b75fbde7ce13c22ff4348fc5c5f41d277d56bb079eda00cfe79ed958/strawberry_graphql-0.291.3.tar.gz", hash = "sha256:81414e99bf84b08df9dae1709798a3d31a6bfe40635b58fd4b2904cd71759491", size = 217725, upload-time = "2026-02-07T08:32:04.507Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/2e/5c/7841327bd5ab23cd71c74dbb42e72eb7d83f898c7be9e0908cbfcb965b00/strawberry_graphql-0.291.3-py3-none-any.whl", hash = "sha256:ca0a2fdcaf631d05363d3a53390dc6829e7bd5948579ff185b6e4e1478687f95", size = 316383, upload-time = "2026-02-07T08:32:06.959Z" },
 ]
 
 [[package]]
@@ -875,12 +815,12 @@ dependencies = [
     { name = "hydra-core" },
     { name = "imagesize" },
     { name = "iopath" },
+    { name = "marshmallow" },
     { name = "numpy" },
     { name = "opencv-python-headless" },
     { name = "pillow" },
     { name = "pycocotools" },
     { name = "scikit-image" },
-    { name = "strawberry-graphql" },
     { name = "torch" },
     { name = "torchvision" },
     { name = "tqdm" },
@@ -901,12 +841,12 @@ requires-dist = [
     { name = "hydra-core", specifier = "==1.3.2" },
     { name = "imagesize", specifier = "==2.0.0" },
     { name = "iopath", specifier = "==0.1.10" },
+    { name = "marshmallow", specifier = "==3.26.2" },
     { name = "numpy", specifier = "==2.2.6" },
     { name = "opencv-python-headless", specifier = "==4.13.0.92" },
     { name = "pillow", specifier = "==12.2.0" },
     { name = "pycocotools", specifier = "==2.0.11" },
     { name = "scikit-image", specifier = "==0.25.2" },
-    { name = "strawberry-graphql", specifier = "==0.291.3" },
     { name = "torch", specifier = "==2.11.0" },
     { name = "torchvision", specifier = "==0.26.0" },
     { name = "tqdm", specifier = "==4.67.3" },

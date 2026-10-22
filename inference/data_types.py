@@ -6,7 +6,7 @@
 # Modifications Copyright (c) 2025 Armya BAKOUAN -- see NOTICE for details.
 
 from dataclasses import dataclass
-from typing import List, Optional, Tuple
+from typing import List, Tuple
 
 import numpy as np
 from dataclasses_json import dataclass_json
@@ -27,20 +27,8 @@ class BaseRequest:
 
 @dataclass_json
 @dataclass
-class StartSessionRequest(BaseRequest):
-    type: str
-    path: str
-    pairs_code: Optional[str] = None
-    sample_id : Optional[str] = None
-    session_id: Optional[str] = None
-
-
-@dataclass_json
-@dataclass
 class AddPointsImageRequest(BaseRequest):
     type: str
-    # session_id: str
-    image_path: str
     image_id : str
     labels: List[int]
     points: List[List[float]]
@@ -51,16 +39,8 @@ class AddPointsImageRequest(BaseRequest):
 @dataclass
 class SlicImageRequest(BaseRequest):
     type: str
-    # session_id: str
-    image_path: str
     image_id: str
     bbox: List[float]
-
-
-@dataclass_json
-@dataclass
-class StartSessionResponse:
-    session_id: str
 
 
 @dataclass_json
