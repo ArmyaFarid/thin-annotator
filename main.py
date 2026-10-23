@@ -9,7 +9,6 @@ import logging
 import os
 import signal
 import time
-from typing import Any
 
 from app_conf import (
     GALLERY_PATH,
@@ -18,10 +17,8 @@ from app_conf import (
 )
 from core.annotator import load_annotator
 from data.annotation_options import get_annotation_options
-from data.schema import schema
-from flask import Flask, make_response, Request, Response, send_from_directory, abort, send_file, jsonify, request
+from flask import Flask, make_response, Response, send_from_directory, abort, send_file, jsonify, request
 from flask_cors import CORS
-from strawberry.flask.views import GraphQLView
 
 from inference.predictor_images import InferenceImageAPI
 
@@ -32,6 +29,8 @@ from models import FOVAsset
 from preprocessing.pngconverter import to_png_bytes, LossyConversion, cached_png_path
 from routes.api.annotation import annotation_blueprint
 from routes.api.batch import batch_blueprint
+from routes.api.inference import inference_blueprint
+from routes.api.pairs import pairs_blueprint
 from routes.api.task import task_blueprint
 from routes.web.docs import docs_blueprint
 from routes.web.editor import editor_blueprint
@@ -54,13 +53,13 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + str(get_writable_dir() / 
 db.init_app(app)
 
 cors = CORS(app, supports_credentials=True)
-inference_api = None
-inference_image_api = None
 
 app.before_request(load_annotator)
 app.register_blueprint(task_blueprint)
 app.register_blueprint(annotation_blueprint)
 app.register_blueprint(batch_blueprint)
+app.register_blueprint(pairs_blueprint)
+app.register_blueprint(inference_blueprint)
 app.register_blueprint(docs_blueprint)
 app.register_blueprint(editor_blueprint)
 
@@ -158,43 +157,14 @@ def serve_fov_image(image_id: str):
 def annotation_options():
   return jsonify(get_annotation_options())
 
-class MyGraphQLView(GraphQLView):
-    def get_context(self, request: Request, response: Response) -> Any:
-        return {
-            "inference_image_api": inference_image_api
-            }
-
-
-# Add GraphQL route to Flask app.
-app.add_url_rule(
-    "/graphql",
-    view_func=MyGraphQLView.as_view(
-        "graphql_view",
-        schema=schema,
-        # Disable GET queries
-        # https://strawberry.rocks/docs/operations/deployment
-        # https://strawberry.rocks/docs/integrations/flask
-        allow_queries_via_get=False,
-        # Strawberry recently changed multipart request handling, which now
-        # requires enabling support explicitly for views.
-        # https://github.com/strawberry-graphql/strawberry/issues/3655
-        multipart_uploads_enabled=True,
-    ),
-)
-
-
 def start_backend_logic(debug: bool = False , use_reloader: bool = False):
     # Ensure environment variables are set inside the new process
     os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
     os.environ['OMP_NUM_THREADS'] = '1'
     """Function to initialize data and APIs inside the child process."""
-    global inference_api, inference_image_api
-
-    # images = preload_data_img()
-    # set_images(images)
 
     print("Initializing SAM 2 Models...")
-    inference_image_api = InferenceImageAPI()
+    app.extensions["inference_image_api"] = InferenceImageAPI()
 
     with app.app_context():
         db.create_all()
