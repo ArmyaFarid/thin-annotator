@@ -20,8 +20,6 @@ from data.annotation_options import get_annotation_options
 from flask import Flask, make_response, Response, send_from_directory, abort, send_file, jsonify, request
 from flask_cors import CORS
 
-from inference.predictor_images import InferenceImageAPI
-
 import webbrowser
 
 from extensions import db
@@ -29,11 +27,12 @@ from models import FOVAsset
 from preprocessing.pngconverter import to_png_bytes, LossyConversion, cached_png_path
 from routes.api.annotation import annotation_blueprint
 from routes.api.batch import batch_blueprint
-from routes.api.inference import inference_blueprint
 from routes.api.pairs import pairs_blueprint
+from routes.api.segmentation import segmentation_blueprint
 from routes.api.task import task_blueprint
 from routes.web.docs import docs_blueprint
 from routes.web.editor import editor_blueprint
+from segmentation.registry import build_segmenters
 from system.disk_caching.host_caching import CACHE_DIR
 from system.disk_caching.sweeper import start_sweeper, sweep
 
@@ -59,7 +58,7 @@ app.register_blueprint(task_blueprint)
 app.register_blueprint(annotation_blueprint)
 app.register_blueprint(batch_blueprint)
 app.register_blueprint(pairs_blueprint)
-app.register_blueprint(inference_blueprint)
+app.register_blueprint(segmentation_blueprint)
 app.register_blueprint(docs_blueprint)
 app.register_blueprint(editor_blueprint)
 
@@ -163,8 +162,8 @@ def start_backend_logic(debug: bool = False , use_reloader: bool = False):
     os.environ['OMP_NUM_THREADS'] = '1'
     """Function to initialize data and APIs inside the child process."""
 
-    print("Initializing SAM 2 Models...")
-    app.extensions["inference_image_api"] = InferenceImageAPI()
+    print("Initializing segmentation models...")
+    app.extensions["segmenters"] = build_segmenters()
 
     with app.app_context():
         db.create_all()
